@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { ModelApplication } from '../code/app-framework.module';
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -8,10 +10,13 @@ import { Component, OnInit } from '@angular/core';
 export class HomeComponent implements OnInit
 {
 
-  public text: string = '';
+  public text: string = 'x';
 
-  constructor()
-  { }
+  constructor(model: ModelApplication)
+  {
+    model.Title = 'varza';
+
+  }
 
   public ngOnInit(): void
   {
