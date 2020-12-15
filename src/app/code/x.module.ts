@@ -9,18 +9,32 @@ export class XModule
 {
   constructor(model: ModelApplication)
   {
-    //TODO: initialize module
+    // module initialization
+    //...
 
-    // create data model node
+    // update application model
+    this.UpdateApplicationModel(model);
+
+
+    // tests
+    model.DataModels['Book'].Index = 0;
+  }
+
+  public UpdateApplicationModel(model: ModelApplication)
+  {
+    // update application model
+    model.Title = 'My Application';
+    model.Options.ProtectedContentText = '[Protected]';
+
+    // create data model nodes
     model.RegisterDataModel(Book, { Caption: 'Book' });
     model.RegisterDataModelMembers(Book, {
       Title: { Caption: 'Book Title', Index: 0 },
-      Description: {  }
+      Description: { }
     });
 
-    // update data model
-    model.DataModels['Book'].Index = 0;
-
+    // create views
+    //model.RegisterView();
   }
 }
 
