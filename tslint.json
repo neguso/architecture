@@ -12,7 +12,7 @@
     },
     "array-type": false,
     "arrow-return-shorthand": true,
-    "curly": true,
+    "curly": false,
     "deprecation": {
       "severity": "warning"
     },
@@ -54,7 +54,7 @@
     "no-empty": false,
     "no-inferrable-types": [
       true,
-      "ignore-params"
+      "ignore-params", "ignore-properties"
     ],
     "no-non-null-assertion": true,
     "no-redundant-jsdoc": true,
@@ -113,7 +113,6 @@
     },
     "whitespace": {
       "options": [
-        "check-branch",
         "check-decl",
         "check-operator",
         "check-separator",
@@ -147,6 +146,13 @@
       "element",
       "app",
       "kebab-case"
-    ]
+    ],
+    "comment-format": [
+      true,
+      {
+        "ignore-words": ["TODO"]
+      }
+    ],
+    "no-string-literal": false
   }
 }

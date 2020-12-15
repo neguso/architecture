@@ -12,10 +12,14 @@ export class XModule
     //TODO: initialize module
 
     // create data model node
-    model.RegisterDataModel(Book, { Index: 0, Caption: 'Book' });
+    model.RegisterDataModel(Book, { Caption: 'Book' });
+    model.RegisterDataModelMembers(Book, {
+      Title: { Caption: 'Book Title', Index: 0 },
+      Description: {  }
+    });
 
     // update data model
-
+    model.DataModels['Book'].Index = 0;
 
   }
 }

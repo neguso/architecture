@@ -1,8 +1,8 @@
-import { NgModule, Injectable, Type } from "@angular/core";
+import { NgModule, Injectable, Type } from '@angular/core';
 
 
 @NgModule({
-	providers: []
+  providers: []
 })
 export class AppFrameworkModule
 {
@@ -25,23 +25,21 @@ export abstract class BaseObject
   }
 }
 
-interface BaseObjectClass
+
+
+
+
+
+
+interface Dictionary<T>
 {
-  new (): BaseObject
-}
-
-
-
-
-
-
-interface Dictionary<T> {
   [key: string]: T;
 }
 
+
 export interface IModelNode
 {
-  Index: number | null;
+  Index: number;
   Parent: IModelNode | null;
 }
 
@@ -50,7 +48,7 @@ export interface IModelNode
 export class ModelApplication implements IModelNode
 {
   // IModelNode
-  public Index: number | null = null;
+  public Index: number = 0;
   public Parent: IModelNode | null = null;
 
   public Title: string = '';
@@ -61,26 +59,32 @@ export class ModelApplication implements IModelNode
   { }
 
 
-  public RegisterDataModel(type: Type<BaseObject>, node: Partial<IModelDataModel>)
+  public RegisterDataModel(type: Type<BaseObject>, node: Partial<IModelDataModel>): void
   {
-    this.DataModels[type.constructor.name] = new ModelDataModel(this, node);
+    this.DataModels[type.name] = new ModelDataModel(this, node);
+  }
+
+  public RegisterDataModelMembers(type: Type<BaseObject>, members: Dictionary<Partial<IModelDataModelMember>>): void
+  {
+    for(const member of Object.keys(members))
+      this.DataModels[type.name].Members[member] = new ModelDataModelMember(this.DataModels[type.name], member, members[member]);
   }
 }
 
 interface IModelDataModel
 {
-  Index: number | null;
+  Index: number;
   Caption: string;
 }
 
 export class ModelDataModel implements IModelNode, IModelDataModel
 {
   // IModelNode
-  public Index: number | null = null;
+  public Index: number = 0;
   public Parent: IModelNode | null = null;
 
   public Caption: string = '';
-  public Members?: Dictionary<ModelDataModel> = {};
+  public Members: Dictionary<ModelDataModelMember> = {};
 
 
   public constructor(parent: IModelNode, init: Partial<IModelDataModel>)
@@ -93,7 +97,7 @@ export class ModelDataModel implements IModelNode, IModelDataModel
 
 interface IModelDataModelMember
 {
-  Index: number | null;
+  Index: number;
   Caption: string;
   ToolTip: string;
   NullText: string;
@@ -102,16 +106,19 @@ interface IModelDataModelMember
 export class ModelDataModelMember implements IModelNode, IModelDataModelMember
 {
   // IModelNode
-  public Index: number | null = null;
+  public Index: number = 0;
   public Parent: IModelNode | null;
 
+  public Field: string = '';
   public Caption: string = '';
   public ToolTip: string = '';
   public NullText: string = '';
 
 
-  constructor(parent: IModelNode)
+  constructor(parent: IModelNode, field: string, init: Partial<IModelDataModelMember>)
   {
+    Object.assign(this, init);
+    this.Field = field;
     this.Parent = parent;
   }
 }
