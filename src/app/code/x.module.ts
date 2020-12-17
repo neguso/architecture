@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { AppFrameworkModule, BaseObject, ModelApplication, FieldType, ModelDataModelMember } from './app-framework.module';
+import { AppFrameworkModule, BaseObject, ModelApplication, FieldType, ModelDataModelMember, IBaseObject } from './app-framework.module';
 
 
 @NgModule({
@@ -74,5 +74,64 @@ export class Book extends BaseObject
 }
 
 
+
+
+export abstract class DataStore<T extends IBaseObject>
+{
+
+  public abstract Load(options?: LoadOptions): Promise<Array<T>>;
+
+}
+
+
+export class LoadOptions
+{
+  public Search: string | null = null;
+  public Skip: number = 0;
+  public Take: number = 20;
+
+  public FilterPredicate(search: string): boolean
+  {
+    return true;
+  }
+}
+
+
+
+
+export class ArrayStore<T extends IBaseObject> extends DataStore<T>
+{
+  public Data: Array<T> = [];
+
+  public Load(options?: LoadOptions): Promise<Array<T>>
+  {
+    if(typeof options === 'undefined')
+    {
+      return new Promise<Array<T>>((resolve, reject) => {
+        resolve(this.Data);
+      });
+    }
+    else
+    {
+      //this.Data.filter(e => e.)
+
+      return new Promise<Array<T>>((resolve, reject) => {
+        resolve(this.Data);
+      });
+    }
+  }
+
+
+}
+
+
+export class BooksDataStore extends ArrayStore<Book>
+{
+
+  public Load(): Promise<Array<Book>>
+  {
+    throw '';
+  }
+}
 
 

@@ -28,8 +28,8 @@ export class YModule
 
     model.RegisterListView('Library-List', Library, { });
     model.RegisterListViewColumns('Library-List', {
-      'Name': { },
-      'Address': { },
+      Name: { },
+      Address: { },
     });
     //model.Views['Library-List'].Caption;
   }
