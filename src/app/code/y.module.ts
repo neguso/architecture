@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { AppFrameworkModule, IBaseObject, ModelApplication } from './app-framework.module';
 import { Book, XModule } from './x.module';
 
+
 @NgModule({
   declarations: [],
   imports: [AppFrameworkModule, XModule]
@@ -24,6 +25,13 @@ export class YModule
       Name: { },
       Address: { }
     });
+
+    model.RegisterListView('Library-List', Library, { });
+    model.RegisterListViewColumns('Library-List', {
+      'Name': { },
+      'Address': { },
+    });
+    //model.Views['Library-List'].Caption;
   }
 }
 

@@ -7,6 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppFrameworkModule } from './code/app-framework.module';
 import { XModule } from './code/x.module';
+import { YModule } from './code/y.module';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,7 @@ import { XModule } from './code/x.module';
     AppRoutingModule,
     BrowserAnimationsModule,
     AppFrameworkModule,
-    XModule
+    XModule, YModule
   ],
   providers: [],
   bootstrap: [AppComponent]

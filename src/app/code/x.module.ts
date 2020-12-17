@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
-import { AppFrameworkModule, BaseObject, ModelApplication, FieldType } from './app-framework.module';
+import { AppFrameworkModule, BaseObject, ModelApplication, FieldType, ModelDataModelMember } from './app-framework.module';
+
 
 @NgModule({
   declarations: [],
@@ -15,7 +16,6 @@ export class XModule
     // update application model
     this.UpdateApplicationModel(model);
 
-
     // tests
     model.DataModels['Book'].Index = 0;
   }
@@ -30,8 +30,9 @@ export class XModule
     model.RegisterDataModel(Book, { Caption: 'Book' });
     model.RegisterDataModelMembers(Book, {
       Title: { Type: FieldType.String, Caption: 'Book Title', Index: 0 },
-      Description: { AllowNull: true }
+      Description: { Type: FieldType.String, AllowNull: true }
     });
+    model.DataModels['Book'].Members['aa'] = new ModelDataModelMember(model, 'a');
 
     // create a list view
     model.RegisterListView('Books_ListView', Book, {
@@ -50,7 +51,6 @@ export class XModule
       Title: { Caption: 'Input Title' },
       Description: { MaxLength: 100 }
     });
-
 
 
   }

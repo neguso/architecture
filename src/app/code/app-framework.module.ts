@@ -1,4 +1,3 @@
-import { viewClassName } from '@angular/compiler';
 import { NgModule, Injectable, Type } from '@angular/core';
 
 
@@ -9,10 +8,16 @@ export class AppFrameworkModule
 {
   public constructor(model: ModelApplication)
   {
-    //TODO: initialize application model
+    // initialize application model
+    //...
   }
 }
 
+
+interface Dictionary<T>
+{
+  [key: string]: T;
+}
 
 
 export enum FieldType
@@ -23,16 +28,15 @@ export enum FieldType
   Object = 'object'
 }
 
+
 export interface IBaseObject
 {
   Id: string;
 }
 
-
 export abstract class BaseObject implements IBaseObject
 {
   public Id: string;
-
 
   public constructor(id: string = '')
   {
@@ -40,14 +44,6 @@ export abstract class BaseObject implements IBaseObject
   }
 }
 
-
-
-
-
-interface Dictionary<T>
-{
-  [key: string]: T;
-}
 
 export interface IModelNode
 {
@@ -90,46 +86,50 @@ export class ModelApplication implements IModelNode
   }
 
 
-  public RegisterDataModel(type: Type<IBaseObject>, node: Partial<IModelDataModel>): void
+  //#region Model creation helpers
+
+  public RegisterDataModel(type: Type<IBaseObject>, node: IModelDataModel): void
   {
     this.DataModels[type.name] = new ModelDataModel(this, type, node);
   }
 
-  public RegisterDataModelMembers(type: Type<IBaseObject>, members: Dictionary<Partial<IModelDataModelMember>>): void
+  public RegisterDataModelMembers(type: Type<IBaseObject>, members: Dictionary<IModelDataModelMember>): void
   {
     for(const member of Object.keys(members))
       this.DataModels[type.name].Members[member] = new ModelDataModelMember(this.DataModels[type.name], member, members[member]);
   }
 
-  public RegisterListView(name: string, type: Type<IBaseObject>, node: Partial<IModelListView>): void
+  public RegisterListView(name: string, type: Type<IBaseObject>, node: IModelListView): void
   {
-    this.Views[name] = new ModelListView(name, this, type, node);
+    this.Views[name] = new ModelListView(this, name, type, node);
   }
 
-  public RegisterListViewColumns(name: string, columns: Dictionary<Partial<IModelViewColumn>>): void
+  public RegisterListViewColumns(name: string, columns: Dictionary<IModelViewColumn>): void
   {
     for(const column of Object.keys(columns))
       (this.Views[name] as ModelListView).Colunms[column] = new ModelViewColumn(this.Views[name], column, columns[column]);
   }
 
-  public RegisterDetailView(name: string, type: Type<IBaseObject>, node: Partial<IModelDetailView>): void
+  public RegisterDetailView(name: string, type: Type<IBaseObject>, node: IModelDetailView): void
   {
-    this.Views[name] = new ModelDetailView(name, this, type, node);
+    this.Views[name] = new ModelDetailView(this, name, type, node);
   }
 
-  public RegisterDetailViewItems(name: string, items: Dictionary<Partial<IModelViewItem>>): void
+  public RegisterDetailViewItems(name: string, items: Dictionary<IModelViewItem>): void
   {
     for(const item of Object.keys(items))
       (this.Views[name] as ModelDetailView).Items[item] = new ModelViewItem(this.Views[name], item, items[item]);
   }
+
+  //#endregion
 }
 
 
 
 export interface IModelDataModel
 {
-  Index: number;
-  Caption: string;
+  Index?: number;
+  Caption?: string;
 }
 
 export class ModelDataModel implements IModelNode, IModelDataModel
@@ -141,16 +141,15 @@ export class ModelDataModel implements IModelNode, IModelDataModel
   public ObjectType: Type<IBaseObject>;
   public Caption: string = '';
   public Members: Dictionary<ModelDataModelMember> = {};
-  public Views: Dictionary<ModelView> = {};
 
 
-  public constructor(parent: IModelNode, type: Type<IBaseObject>, init: Partial<IModelDataModel>)
+  public constructor(parent: IModelNode, objectType: Type<IBaseObject>, init?: IModelDataModel)
   {
     this.Parent = parent;
-    this.ObjectType = type;
+    this.ObjectType = objectType;
 
     // set default values
-    this.Caption = type.name;
+    this.Caption = objectType.name;
 
     // set user provided values
     Object.assign(this, init);
@@ -161,13 +160,13 @@ export class ModelDataModel implements IModelNode, IModelDataModel
 
 export interface IModelDataModelMember
 {
-  Index: number;
-  Type: FieldType;
-  Caption: string;
-  ToolTip: string;
-  AllowNull: boolean;
-  NullText: string;
-  MaxLength: number;
+  Index?: number;
+  Type?: FieldType;
+  Caption?: string;
+  ToolTip?: string;
+  AllowNull?: boolean;
+  NullText?: string;
+  MaxLength?: number;
 }
 
 export class ModelDataModelMember implements IModelNode, IModelDataModelMember
@@ -177,19 +176,18 @@ export class ModelDataModelMember implements IModelNode, IModelDataModelMember
   public Parent: IModelNode;
 
   public Field: string;
-  public Type: FieldType;
-  public Caption: string = '';
+  public Type: FieldType = FieldType.String;
+  public Caption: string;
   public ToolTip: string = '';
   public AllowNull: boolean = true;
   public NullText: string = '';
   public MaxLength: number = 50;
 
 
-  constructor(parent: IModelNode, field: string, type: FieldType, init: Partial<IModelDataModelMember>)
+  constructor(parent: IModelNode, field: string, init?: IModelDataModelMember)
   {
-    this.Field = field;
-    this.Type = type;
     this.Parent = parent;
+    this.Field = field;
 
     // set default values
     this.Caption = field;
@@ -225,13 +223,13 @@ export abstract class ModelView implements IModelNode
   }
 
 
-  protected get Model(): ModelApplication { return this.Parent.Parent as ModelApplication; }
+  protected get Model(): ModelApplication { return this.Parent as ModelApplication; }
 
 
-  public constructor(name: string, parent: IModelNode, type: Type<IBaseObject>)
+  public constructor(parent: IModelNode, name: string, type: Type<IBaseObject>)
   {
-    this.Name = name;
     this.Parent = parent;
+    this.Name = name;
     this.ObjectType = type;
   }
 }
@@ -273,8 +271,8 @@ export abstract class ModelViewField implements IModelNode
 
 export interface IModelListView
 {
-  Index: number;
-  Caption: string | null;
+  Index?: number;
+  Caption?: string | null;
 }
 
 export class ModelListView extends ModelView implements IModelListView
@@ -282,9 +280,9 @@ export class ModelListView extends ModelView implements IModelListView
   public Colunms: Dictionary<ModelViewColumn> = {};
 
 
-  public constructor(name: string, parent: IModelNode, type: Type<IBaseObject>, init: Partial<IModelListView>)
+  public constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelListView)
   {
-    super(name, parent, type);
+    super(parent, name, type);
 
     // set default values
     //...
@@ -297,13 +295,13 @@ export class ModelListView extends ModelView implements IModelListView
 
 export interface IModelViewColumn
 {
-  Index: number;
-  Caption: string | null;
+  Index?: number;
+  Caption?: string | null;
 }
 
 export class ModelViewColumn extends ModelViewField implements IModelViewColumn
 {
-  constructor(parent: IModelNode, field: string, init: Partial<IModelViewColumn>)
+  constructor(parent: IModelNode, field: string, init?: IModelViewColumn)
   {
     super(parent, field);
 
@@ -322,8 +320,8 @@ export class ModelViewColumn extends ModelViewField implements IModelViewColumn
 
 export interface IModelDetailView
 {
-  Index: number;
-  Caption: string | null;
+  Index?: number;
+  Caption?: string | null;
 }
 
 export class ModelDetailView extends ModelView implements IModelDetailView
@@ -331,9 +329,9 @@ export class ModelDetailView extends ModelView implements IModelDetailView
   public Items: Dictionary<ModelViewItem> = {};
 
 
-  constructor(name: string, parent: IModelNode, type: Type<IBaseObject>, init: Partial<IModelDetailView>)
+  constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelDetailView)
   {
-    super(name, parent, type);
+    super(parent, name, type);
 
     // set default values
     //...
@@ -346,9 +344,9 @@ export class ModelDetailView extends ModelView implements IModelDetailView
 
 export interface IModelViewItem
 {
-  Index: number;
-  Caption: string | null;
-  MaxLength: number;
+  Index?: number;
+  Caption?: string | null;
+  MaxLength?: number;
 }
 
 export class ModelViewItem extends ModelViewField implements IModelViewItem
@@ -366,7 +364,7 @@ export class ModelViewItem extends ModelViewField implements IModelViewItem
   }
 
 
-  constructor(parent: IModelNode, field: string, init: Partial<IModelViewItem>)
+  constructor(parent: IModelNode, field: string, init?: IModelViewItem)
   {
     super(parent, field);
 
