@@ -79,23 +79,31 @@ export class Book extends BaseObject
 export abstract class DataStore<T extends IBaseObject>
 {
 
-  public abstract Load(options?: LoadOptions): Promise<Array<T>>;
+  public abstract Load(options?: LoadOptions<T>): Promise<Array<T>>;
 
 }
 
 
-export class LoadOptions
+export interface ILoadOptions
 {
-  public Search: string | null = null;
-  public Skip: number = 0;
-  public Take: number = 20;
+  Search?: string;
+  Skip?: number;
+  Take?: number;
+}
 
-  public FilterPredicate(search: string): boolean
+
+class LoadOptions<T extends IBaseObject> implements ILoadOptions
+{
+  public Search: string = '';
+  public Skip: number = 0;
+  public Take: number = 0;
+
+
+  constructor(init: ILoadOptions)
   {
-    return true;
+    Object.assign(this, init);
   }
 }
-
 
 
 
@@ -103,22 +111,24 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 {
   public Data: Array<T> = [];
 
-  public Load(options?: LoadOptions): Promise<Array<T>>
+  public Load(options?: ILoadOptions): Promise<Array<T>>
   {
     if(typeof options === 'undefined')
-    {
-      return new Promise<Array<T>>((resolve, reject) => {
-        resolve(this.Data);
-      });
-    }
-    else
-    {
-      //this.Data.filter(e => e.)
+      return new Promise<Array<T>>((resolve, reject) => { resolve(this.Data); });
 
-      return new Promise<Array<T>>((resolve, reject) => {
-        resolve(this.Data);
-      });
-    }
+    const o = new LoadOptions(options);
+
+    let items = this.Data;
+
+    if(o.Search != '')
+      items = this.Data.filter((value: T) => this.OnSearch(o.Search, value));
+
+    return new Promise<Array<T>>((resolve, reject) => { resolve(items); });
+  }
+
+  protected OnSearch(search: string, item: T): boolean
+  {
+    return true;
   }
 
 
@@ -128,10 +138,18 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 export class BooksDataStore extends ArrayStore<Book>
 {
 
-  public Load(): Promise<Array<Book>>
+  protected OnSearch(search: string, item: Book): boolean
   {
-    throw '';
+    return item.Title.indexOf(search) != -1 || (item.Description ?? '').indexOf(search) != -1;
   }
 }
 
 
+
+const ary: Array<Book> = [
+  { Id: '1', Title: 'book one', Description: 'first book' },
+  { Id: '2', Title: 'book two', Description: 'description of the second book' }
+];
+
+const store = new ArrayStore<Book>();
+store.Data = ary;

@@ -14,7 +14,7 @@ export class AppFrameworkModule
 }
 
 
-interface Dictionary<T>
+interface IDictionary<T>
 {
   [key: string]: T;
 }
@@ -76,8 +76,8 @@ export class ModelApplication implements IModelNode
   public Title: string = '';
   public Description: string = '';
   public Options: ModelApplicationOptions;
-  public DataModels: Dictionary<ModelDataModel> = {};
-  public Views: Dictionary<ModelView> = {};
+  public DataModels: IDictionary<ModelDataModel> = {};
+  public Views: IDictionary<ModelView> = {};
 
 
   public constructor()
@@ -93,7 +93,7 @@ export class ModelApplication implements IModelNode
     this.DataModels[type.name] = new ModelDataModel(this, type, node);
   }
 
-  public RegisterDataModelMembers(type: Type<IBaseObject>, members: Dictionary<IModelDataModelMember>): void
+  public RegisterDataModelMembers(type: Type<IBaseObject>, members: IDictionary<IModelDataModelMember>): void
   {
     for(const member of Object.keys(members))
       this.DataModels[type.name].Members[member] = new ModelDataModelMember(this.DataModels[type.name], member, members[member]);
@@ -104,7 +104,7 @@ export class ModelApplication implements IModelNode
     this.Views[name] = new ModelListView(this, name, type, node);
   }
 
-  public RegisterListViewColumns(name: string, columns: Dictionary<IModelViewColumn>): void
+  public RegisterListViewColumns(name: string, columns: IDictionary<IModelViewColumn>): void
   {
     for(const column of Object.keys(columns))
       (this.Views[name] as ModelListView).Colunms[column] = new ModelViewColumn(this.Views[name], column, columns[column]);
@@ -115,7 +115,7 @@ export class ModelApplication implements IModelNode
     this.Views[name] = new ModelDetailView(this, name, type, node);
   }
 
-  public RegisterDetailViewItems(name: string, items: Dictionary<IModelViewItem>): void
+  public RegisterDetailViewItems(name: string, items: IDictionary<IModelViewItem>): void
   {
     for(const item of Object.keys(items))
       (this.Views[name] as ModelDetailView).Items[item] = new ModelViewItem(this.Views[name], item, items[item]);
@@ -140,7 +140,7 @@ export class ModelDataModel implements IModelNode, IModelDataModel
 
   public ObjectType: Type<IBaseObject>;
   public Caption: string = '';
-  public Members: Dictionary<ModelDataModelMember> = {};
+  public Members: IDictionary<ModelDataModelMember> = {};
 
 
   public constructor(parent: IModelNode, objectType: Type<IBaseObject>, init?: IModelDataModel)
@@ -277,7 +277,7 @@ export interface IModelListView
 
 export class ModelListView extends ModelView implements IModelListView
 {
-  public Colunms: Dictionary<ModelViewColumn> = {};
+  public Colunms: IDictionary<ModelViewColumn> = {};
 
 
   public constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelListView)
@@ -326,7 +326,7 @@ export interface IModelDetailView
 
 export class ModelDetailView extends ModelView implements IModelDetailView
 {
-  public Items: Dictionary<ModelViewItem> = {};
+  public Items: IDictionary<ModelViewItem> = {};
 
 
   constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelDetailView)
