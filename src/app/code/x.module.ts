@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { Injectable, NgModule } from '@angular/core';
 import { AppFrameworkModule, BaseObject, ModelApplication, FieldType, ModelDataModelMember, IBaseObject } from './app-framework.module';
 
 
@@ -78,9 +78,12 @@ export class Book extends BaseObject
 
 export abstract class DataStore<T extends IBaseObject>
 {
-
-  public abstract Load(options?: LoadOptions<T>): Promise<Array<T>>;
-
+  public abstract Get(key: string): Promise<T | null>;
+  public abstract Load(options?: LoadOptions): Promise<Array<T>>;
+  public abstract Insert(item: T): Promise<T>;
+  public abstract Update(key: string, item: T): Promise<T | null>;
+  public abstract Remove(key: string): Promise<number>;
+  public abstract Count(options?: CountOptions): Promise<number>;
 }
 
 
@@ -92,7 +95,7 @@ export interface ILoadOptions
 }
 
 
-class LoadOptions<T extends IBaseObject> implements ILoadOptions
+class LoadOptions implements ILoadOptions
 {
   public Search: string = '';
   public Skip: number = 0;
@@ -105,51 +108,114 @@ class LoadOptions<T extends IBaseObject> implements ILoadOptions
   }
 }
 
+class CountOptions
+{
+  public Filter: any;
+}
+
 
 
 export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 {
   public Data: Array<T> = [];
 
+
+  constructor(data?: Array<T>)
+  {
+    super();
+
+    if(typeof data !== 'undefined')
+      this.Data = data;
+  }
+
+
+  public Get(key: string): Promise<T | null>
+  {
+    return new Promise<T | null>((resolve, reject) => { resolve(this.Data.find(value => value.Id === key) ?? null); });
+  }
+
   public Load(options?: ILoadOptions): Promise<Array<T>>
   {
     if(typeof options === 'undefined')
       return new Promise<Array<T>>((resolve, reject) => { resolve(this.Data); });
 
-    const o = new LoadOptions(options);
-
     let items = this.Data;
 
-    if(o.Search != '')
-      items = this.Data.filter((value: T) => this.OnSearch(o.Search, value));
+    items = this.Search(items, options.Search ?? '');
+    items = this.Paging(items, options.Skip ?? 0, options.Take ?? 0);
 
     return new Promise<Array<T>>((resolve, reject) => { resolve(items); });
   }
 
-  protected OnSearch(search: string, item: T): boolean
+  public Insert(item: T): Promise<T>
   {
-    return true;
+    return new Promise<T>((resolve, reject) => {
+      this.Data.push(item);
+      resolve(item);
+    });
+  }
+
+  public Update(key: string, item: T): Promise<T | null>
+  {
+    return new Promise<T | null>((resolve, reject) => {
+      const i = this.Data.findIndex(value => value.Id === key);
+      if(i === -1)
+      {
+        resolve(null);
+        return;
+      }
+
+      this.Data.splice(i, 1, item);
+      resolve(item);
+    });
+  }
+
+  public Remove(key: string): Promise<number>
+  {
+    return new Promise<number>((resolve, reject) => {
+      const i = this.Data.findIndex(value => value.Id === key);
+      if(i === -1)
+      {
+        resolve(0);
+        return;
+      }
+
+      resolve(this.Data.splice(i, 1).length);
+    });
+  }
+
+  public Count(options?: CountOptions): Promise<number>
+  {
+    return new Promise<number>((resolve, reject) => { resolve(this.Data.length); });
   }
 
 
+  protected Search(array: Array<T>, text: string): Array<T>
+  {
+    return array;
+  }
+
+  protected Paging(array: Array<T>, skip: number, take: number): Array<T>
+  {
+    return array.slice(skip, take === 0 ? array.length : Math.min(skip + take, array.length));
+  }
 }
 
 
+@Injectable({ providedIn: 'root' })
 export class BooksDataStore extends ArrayStore<Book>
 {
 
-  protected OnSearch(search: string, item: Book): boolean
+  protected Search(array: Array<Book>, text: string): Array<Book>
   {
-    return item.Title.indexOf(search) != -1 || (item.Description ?? '').indexOf(search) != -1;
+    return array.filter(e => e.Title.indexOf(text) !== -1 || (e.Description !== null && e.Description.indexOf(text) !== -1));
   }
 }
 
 
 
-const ary: Array<Book> = [
-  { Id: '1', Title: 'book one', Description: 'first book' },
-  { Id: '2', Title: 'book two', Description: 'description of the second book' }
-];
 
-const store = new ArrayStore<Book>();
-store.Data = ary;
+
+
+
+
