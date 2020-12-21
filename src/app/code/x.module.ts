@@ -1,5 +1,22 @@
-import { Injectable, NgModule } from '@angular/core';
-import { AppFrameworkModule, BaseObject, ModelApplication, FieldType, ModelDataModelMember, IBaseObject } from './app-framework.module';
+import { Inject, Injectable, NgModule } from '@angular/core';
+
+import {
+  AppFrameworkModule,
+  Event,
+  BaseObject,
+  ModelApplication,
+  FieldType,
+  ModelDataModelMember,
+  IBaseObject,
+  Controller,
+  ControllerBase,
+  ControllerManager,
+  IComponent,
+  IController,
+  ActionBase,
+  ControllerCreatedEventArgs
+} from './app-framework.module';
+import { HomeComponent } from '../home/home.component';
 
 
 @NgModule({
@@ -32,7 +49,7 @@ export class XModule
       Title: { Type: FieldType.String, Caption: 'Book Title', Index: 0 },
       Description: { Type: FieldType.String, AllowNull: true }
     });
-    model.DataModels['Book'].Members['aa'] = new ModelDataModelMember(model, 'a');
+    model.DataModels['Book'].Members['ISDN'] = new ModelDataModelMember(model, 'ISDN');
 
     // create a list view
     model.RegisterListView('Books_ListView', Book, {
@@ -57,11 +74,18 @@ export class XModule
 }
 
 
+const booksdata: Array<Book> = [
+  { Id: '1', Title: 'book one', Description: 'first book', ISDN: '123' },
+  { Id: '2', Title: 'book two', Description: 'description of the second book', ISDN: '1234' },
+  { Id: '3', Title: 'book three', Description: null, ISDN: '12345' }
+];
+
 
 export class Book extends BaseObject
 {
   public Title: string;
   public Description: string | null;
+  public ISDN: string | null = null;
 
 
   constructor(id: string, title: string, description: string | null = null)
@@ -142,7 +166,7 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
     let items = this.Data;
 
     items = this.Search(items, options.Search ?? '');
-    items = this.Paging(items, options.Skip ?? 0, options.Take ?? 0);
+    items = this.Slice(items, options.Skip ?? 0, options.Take ?? 0);
 
     return new Promise<Array<T>>((resolve, reject) => { resolve(items); });
   }
@@ -195,9 +219,9 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
     return array;
   }
 
-  protected Paging(array: Array<T>, skip: number, take: number): Array<T>
+  protected Slice(array: Array<T>, skip: number, take: number): Array<T>
   {
-    return array.slice(skip, take === 0 ? array.length : Math.min(skip + take, array.length));
+    return array.slice(skip, take === 0 ? array.length : skip + take);
   }
 }
 
@@ -205,7 +229,6 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 @Injectable({ providedIn: 'root' })
 export class BooksDataStore extends ArrayStore<Book>
 {
-
   protected Search(array: Array<Book>, text: string): Array<Book>
   {
     return array.filter(e => e.Title.indexOf(text) !== -1 || (e.Description !== null && e.Description.indexOf(text) !== -1));
@@ -219,3 +242,64 @@ export class BooksDataStore extends ArrayStore<Book>
 
 
 
+@Injectable()
+@Controller(HomeComponent)
+class OneController extends ControllerBase
+{
+  constructor(component: HomeComponent, model: ModelApplication)
+  {
+    super(component);
+
+    this.Created.Subscribe(() => {
+      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+    });
+  }
+}
+
+@Injectable()
+@Controller(HomeComponent)
+class TwoController extends ControllerBase
+{
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
+  {
+    super(component);
+
+    this.Created.Subscribe(() => { console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`); });
+  }
+}
+
+@Injectable()
+@Controller(HomeComponent)
+class ThreeController implements IController
+{
+  public Name: string = '';
+  public Component: IComponent;
+  public readonly Actions: Array<ActionBase> = [];
+  public readonly Created: Event<ControllerCreatedEventArgs> = new Event<ControllerCreatedEventArgs>();
+
+
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
+  {
+    this.Component = component;
+
+    this.Created.Subscribe(() => {
+      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+
+      // non-declarative controller registration
+      ControllerManager.Register(FourController, HomeComponent);
+    });
+  }
+}
+
+@Injectable()
+class FourController extends ControllerBase
+{
+  constructor(component: HomeComponent, model: ModelApplication)
+  {
+    super(component);
+
+    this.Created.Subscribe(() => {
+      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+    });
+  }
+}

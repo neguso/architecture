@@ -1,30 +1,42 @@
 import { Component, OnInit } from '@angular/core';
 
-import { ModelApplication } from '../code/app-framework.module';
-import { Book, BooksDataStore } from '../code/x.module';
+import {
+  ControllerManager,
+  EventAggregator,
+  IComponent,
+  ModelApplication,
+  StateManager
+} from '../code/app-framework.module';
+
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit
+export class HomeComponent implements IComponent, OnInit
 {
-  private bookStore: BooksDataStore;
+  public Events: EventAggregator = new EventAggregator();
+  public States: StateManager = new StateManager();
 
-  public text: string = 'x';
+  public text: string = 'initial value';
 
-  constructor(model: ModelApplication, bookStore: BooksDataStore)
+
+  constructor(model: ModelApplication)
   {
-    model.Title = 'varza';
+    console.log(`Component ${this.constructor.name} created`);
 
-    this.bookStore = bookStore;
-    this.bookStore.Data = booksdata;
+    model.Title = 'application title';
   }
+
 
   public ngOnInit(): void
   {
-    this.text = 'hello world';
+    console.log(`Component ${this.constructor.name} initialized`);
+
+    ControllerManager.RegisterComponent(this);
+
+    this.text = 'Hello world!';
 
     this.Load().then();
   }
@@ -34,26 +46,12 @@ export class HomeComponent implements OnInit
   {
     try
     {
-      this.bookStore.Insert({ Id: '4', Title: 'Four', Description: null });
-      const books = await this.bookStore.Load({ Search: 'our' });
 
-
-      let c = books.length;
     }
     catch(exception)
     {
-      console.log('loading error');
+      console.log('data loading error');
     }
   }
-
-
 }
 
-
-
-
-const booksdata: Array<Book> = [
-  { Id: '1', Title: 'book one', Description: 'first book' },
-  { Id: '2', Title: 'book two', Description: 'description of the second book' },
-  { Id: '3', Title: 'book three', Description: null }
-];
