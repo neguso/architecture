@@ -728,7 +728,7 @@ export abstract class ControllerBase implements IController
   {
     this.Component = component;
 
-    this.Created.Subscribe(this.OnCreated);
+    this.Created.Subscribe(data => this.OnCreated(data));
     this.Active.ValueChanged.Subscribe(data => this.ActiveStateChanged(data));
   }
 
