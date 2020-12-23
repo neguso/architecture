@@ -1,4 +1,4 @@
-import { NgModule, Type, Injectable, Injector } from '@angular/core';
+import { NgModule, Type, Injectable, Injector, ValueProvider } from '@angular/core';
 
 
 @NgModule({
@@ -385,19 +385,23 @@ export class ModelViewItem extends ModelViewField implements IModelViewItem
 
 //#endregion
 
-
-
-export class Event<T>
+export class EventArgs
 {
-  protected Handlers: Array<(data?: T) => void> = [];
+  public static readonly Empty: EventArgs = new EventArgs();
+}
 
 
-  public Subscribe(handler: (data?: T) => void): void
+export class Event<T extends EventArgs>
+{
+  protected Handlers: Array<(data: T) => void> = [];
+
+
+  public Subscribe(handler: (data: T) => void): void
   {
     this.Handlers.push(handler);
   }
 
-  public Unsubscribe(handler: (data?: T) => void): void
+  public Unsubscribe(handler: (data: T) => void): void
   {
     this.Handlers.splice(this.Handlers.indexOf(handler), 1);
   }
@@ -407,7 +411,7 @@ export class Event<T>
     this.Handlers.length = 0;
   }
 
-  public Trigger(data?: T): void
+  public Trigger(data: T): void
   {
     this.Handlers.slice(0).forEach(handler => handler(data));
   }
@@ -468,14 +472,14 @@ export class EventAggregator
 export interface IComponent
 {
   Events: EventAggregator;
-  States: StateManager;
+  State: StateManager;
 }
 
 
 export abstract class ComponentBase implements IComponent
 {
   public Events: EventAggregator = new EventAggregator();
-  public States: StateManager = new StateManager();
+  public State: StateManager = new StateManager();
 
 
   constructor(injector: Injector)
@@ -487,9 +491,16 @@ export abstract class ComponentBase implements IComponent
 
 
 
-export class ActionBaseEventArgs
+export class ActionBaseEventArgs extends EventArgs
 {
-  constructor(public action?: ActionBase) {}
+  public Action: ActionBase;
+
+  constructor(public action: ActionBase)
+  {
+    super();
+
+    this.Action = action;
+  }
 }
 
 
@@ -497,7 +508,7 @@ export class ActionExecutingEventArgs extends ActionBaseEventArgs
 {
   public Cancel: boolean = false;
 
-  constructor(action?: ActionBase)
+  constructor(action: ActionBase)
   {
     super(action);
   }
@@ -506,13 +517,13 @@ export class ActionExecutingEventArgs extends ActionBaseEventArgs
 
 export abstract class ActionBase
 {
-  public Executing: Event<ActionExecutingEventArgs> = new Event<ActionExecutingEventArgs>();
-  public Execute: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
-  public Executed: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
-  public ExecuteCanceled: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
+  public readonly Executing: Event<ActionExecutingEventArgs> = new Event<ActionExecutingEventArgs>();
+  public readonly Execute: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
+  public readonly Executed: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
+  public readonly ExecuteCanceled: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
 
 
-  public doExecute(): any
+  public DoExecute(): void
   {
     const executingArgs = new ActionExecutingEventArgs(this);
     this.Executing.Trigger(executingArgs);
@@ -527,9 +538,165 @@ export abstract class ActionBase
 }
 
 
-export class ControllerCreatedEventArgs
+
+export enum BoolListOperatorType
 {
-  constructor(public controller: IController) { }
+  And, Or
+}
+
+
+export class BoolValueChangedEventArgs extends EventArgs
+{
+  public OldValue: boolean;
+  public NewValue: boolean;
+
+  constructor(oldValue: boolean, newValue: boolean)
+  {
+    super();
+
+    this.OldValue = oldValue;
+    this.NewValue = newValue;
+  }
+}
+
+
+
+export class BoolList
+{
+  protected Suspended: number = 0;
+  protected ChangesCount: number = 0;
+  protected BeginValue: boolean = false;
+  protected readonly Items: IDictionary<boolean> = {};
+  protected ImplicitValue: boolean;
+  protected OperatorType: BoolListOperatorType;
+
+
+  public readonly Changed: Event<EventArgs> = new Event<EventArgs>();
+  public readonly ValueChanged: Event<BoolValueChangedEventArgs> = new Event<BoolValueChangedEventArgs>();
+
+
+  constructor(implicitValue: boolean = true, operatorType: BoolListOperatorType = BoolListOperatorType.And)
+  {
+    this.ImplicitValue = implicitValue;
+    this.OperatorType = operatorType;
+  }
+
+
+  public get Value(): boolean
+  {
+    if(Object.keys(this.Items).length === 0)
+      return this.ImplicitValue;
+    if(this.OperatorType === BoolListOperatorType.And)
+      return Object.values(this.Items).every(value => value);
+    return Object.values(this.Items).some(value => value);
+  }
+
+  public get Keys(): Array<string>
+  {
+    return Object.keys(this.Items);
+  }
+
+  public get Count(): number
+  {
+    return Object.keys(this.Items).length;
+  }
+
+  public SetItemValue(key: string, value: boolean): void
+  {
+    if(this.Items[key] !== value)
+    {
+      const oldValue = this.Value;
+
+      this.Items[key] = value;
+
+      if(this.Suspended === 0)
+      {
+        this.Changed.Trigger(EventArgs.Empty);
+        if(oldValue !== this.Value)
+          this.ValueChanged.Trigger(new BoolValueChangedEventArgs(oldValue, this.Value));
+      }
+      else
+        this.ChangesCount++;
+    }
+  }
+
+  public GetItemValue(key: string): boolean
+  {
+    if(this.Items.hasOwnProperty(key))
+      return this.Items[key];
+    throw new Error(`Item [${key}] not found.`);
+  }
+
+  public RemoveItem(key: string): void
+  {
+    if(this.Items.hasOwnProperty(key))
+    {
+      const oldValue = this.Value;
+
+      delete this.Items[key];
+
+      if(this.Suspended === 0)
+      {
+        this.Changed.Trigger(EventArgs.Empty);
+        if(oldValue !== this.Value)
+          this.ValueChanged.Trigger(new BoolValueChangedEventArgs(oldValue, this.Value));
+      }
+      else
+        this.ChangesCount++;
+    }
+  }
+
+  public BeginUpdate(): void
+  {
+    if(this.Suspended === 0)
+      this.BeginValue = this.Value;
+
+    this.Suspended++;
+  }
+
+  public EndUpdate(): void
+  {
+    if(this.Suspended > 0)
+    {
+      this.Suspended--;
+
+      if(this.Suspended === 0 && this.ChangesCount > 0)
+      {
+        this.Changed.Trigger(EventArgs.Empty);
+        this.ChangesCount = 0;
+
+        if(this.BeginValue !== this.Value)
+          this.ValueChanged.Trigger(new BoolValueChangedEventArgs(this.BeginValue, this.Value));
+      }
+    }
+  }
+}
+
+
+
+
+export class ControllerCreatedEventArgs extends EventArgs
+{
+  public Controller: IController;
+
+  constructor(controller: IController)
+  {
+    super();
+
+    this.Controller = controller;
+  }
+}
+
+export class ControllerActiveStateChangedEventArgs extends EventArgs
+{
+  public Controller: IController;
+
+  constructor(controller: IController)
+  {
+    super();
+
+    this.Controller = controller;
+  }
 }
 
 
@@ -539,7 +706,10 @@ export interface IController
   Name: string;
   Component: IComponent;
   Actions: Array<ActionBase>;
+  Active: BoolList;
   Created: Event<ControllerCreatedEventArgs>;
+  Activated: Event<ControllerActiveStateChangedEventArgs>;
+  Deactivated: Event<ControllerActiveStateChangedEventArgs>;
 }
 
 
@@ -548,16 +718,35 @@ export abstract class ControllerBase implements IController
   public Name: string = '';
   public Component: IComponent;
   public readonly Actions: Array<ActionBase> = [];
+  public readonly Active: BoolList = new BoolList();
   public readonly Created: Event<ControllerCreatedEventArgs> = new Event<ControllerCreatedEventArgs>();
+  public readonly Activated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
+  public readonly Deactivated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
 
 
   constructor(component: IComponent)
   {
     this.Component = component;
+
+    this.Created.Subscribe(this.OnCreated);
+    this.Active.ValueChanged.Subscribe(data => this.ActiveStateChanged(data));
+  }
+
+
+  protected OnCreated(data: ControllerCreatedEventArgs): void
+  {
+    if(this.Active.Value)
+      this.Activated.Trigger(new ControllerActiveStateChangedEventArgs(this));
+  }
+
+  protected ActiveStateChanged(data: BoolValueChangedEventArgs): void
+  {
+    if(data.NewValue)
+      this.Activated.Trigger(new ControllerActiveStateChangedEventArgs(this));
+    else
+      this.Deactivated.Trigger(new ControllerActiveStateChangedEventArgs(this));
   }
 }
-
-
 
 
 //#region Controller manager
@@ -717,6 +906,134 @@ export function Controller(componentType: Type<IComponent>): (controllerType: Ty
 //#endregion
 
 
+//#region Data Store
+
+export abstract class DataStore<T extends IBaseObject>
+{
+  public abstract Get(key: string): Promise<T | null>;
+  public abstract Load(options?: LoadOptions): Promise<Array<T>>;
+  public abstract Insert(item: T): Promise<T>;
+  public abstract Update(key: string, item: T): Promise<T | null>;
+  public abstract Remove(key: string): Promise<number>;
+  public abstract Count(options?: CountOptions): Promise<number>;
+}
+
+
+export interface ILoadOptions
+{
+  Search?: string;
+  Skip?: number;
+  Take?: number;
+}
+
+
+class LoadOptions implements ILoadOptions
+{
+  public Search: string = '';
+  public Skip: number = 0;
+  public Take: number = 0;
+
+
+  constructor(init: ILoadOptions)
+  {
+    Object.assign(this, init);
+  }
+}
+
+class CountOptions
+{
+  public Filter: any;
+}
+
+
+
+export class ArrayStore<T extends IBaseObject> extends DataStore<T>
+{
+  public Data: Array<T> = [];
+
+
+  constructor(data?: Array<T>)
+  {
+    super();
+
+    if(typeof data !== 'undefined')
+      this.Data = data;
+  }
+
+
+  public Get(key: string): Promise<T | null>
+  {
+    return new Promise<T | null>((resolve, reject) => { resolve(this.Data.find(value => value.Id === key) ?? null); });
+  }
+
+  public Load(options?: ILoadOptions): Promise<Array<T>>
+  {
+    if(typeof options === 'undefined')
+      return new Promise<Array<T>>((resolve, reject) => { resolve(this.Data); });
+
+    let items = this.Data;
+
+    items = this.Search(items, options.Search ?? '');
+    items = this.Slice(items, options.Skip ?? 0, options.Take ?? 0);
+
+    return new Promise<Array<T>>((resolve, reject) => { resolve(items); });
+  }
+
+  public Insert(item: T): Promise<T>
+  {
+    return new Promise<T>((resolve, reject) => {
+      this.Data.push(item);
+      resolve(item);
+    });
+  }
+
+  public Update(key: string, item: T): Promise<T | null>
+  {
+    return new Promise<T | null>((resolve, reject) => {
+      const i = this.Data.findIndex(value => value.Id === key);
+      if(i === -1)
+      {
+        resolve(null);
+        return;
+      }
+
+      this.Data.splice(i, 1, item);
+      resolve(item);
+    });
+  }
+
+  public Remove(key: string): Promise<number>
+  {
+    return new Promise<number>((resolve, reject) => {
+      const i = this.Data.findIndex(value => value.Id === key);
+      if(i === -1)
+      {
+        resolve(0);
+        return;
+      }
+
+      resolve(this.Data.splice(i, 1).length);
+    });
+  }
+
+  public Count(options?: CountOptions): Promise<number>
+  {
+    return new Promise<number>((resolve, reject) => { resolve(this.Data.length); });
+  }
+
+
+  protected Search(array: Array<T>, text: string): Array<T>
+  {
+    return array;
+  }
+
+  protected Slice(array: Array<T>, skip: number, take: number): Array<T>
+  {
+    return array.slice(skip, take === 0 ? array.length : skip + take);
+  }
+}
+
+//#endregion
 
 
 //#region State Manager
@@ -725,6 +1042,13 @@ export class StateManager
 {
   protected States: IDictionary<any> = {};
   protected StateChange = new Event<StateChangeEventArgs>();
+
+
+  constructor(...states: Array<{ state: string, value: any }>)
+  {
+    states.forEach(p => this.Register(p.state, p.value));
+  }
+
 
   public Value(name: string): any
   {
@@ -771,7 +1095,7 @@ export class StateManager
     delete this.States[name];
   }
 
-  public in(...states: Array<string>): boolean
+  public In(...states: Array<string>): boolean
   {
     return states.indexOf(this.current) !== -1;
   }

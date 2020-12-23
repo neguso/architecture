@@ -16,10 +16,9 @@ import {
 })
 export class HomeComponent implements IComponent, OnInit
 {
+  // IComponent
   public Events: EventAggregator = new EventAggregator();
-  public States: StateManager = new StateManager();
-
-  public text: string = 'initial value';
+  public State: HomeState = new HomeState();
 
 
   constructor(model: ModelApplication)
@@ -36,22 +35,66 @@ export class HomeComponent implements IComponent, OnInit
 
     ControllerManager.RegisterComponent(this);
 
-    this.text = 'Hello world!';
+    this.State.When('loading', () => this.LoadData());
 
-    this.Load().then();
+    this.State.Current = 'loading';
   }
 
 
-  public async Load(): Promise<void>
+  public async LoadData(): Promise<void>
   {
     try
     {
+      // load data
+      this.State.Presenting.Data = 'Hello world!';
 
+      //throw new Error('Testing exceptions');
+
+      setTimeout(() => {
+        this.State.Current = 'presenting';
+      }, 2000);
     }
     catch(exception)
     {
-      console.log('data loading error');
+      this.State.Error.Message = exception;
+      this.State.Current = 'error';
     }
   }
 }
 
+
+
+
+class HomeState extends StateManager
+{
+
+  constructor(currentState: string = 'new')
+  {
+    super(
+      { state: 'new', value: null },
+      { state: 'loading', value: new LoadingState() },
+      { state: 'error', value: new ErrorState() },
+      { state: 'presenting', value: new PresentingState() }
+    );
+  }
+
+  // state shortcuts
+  public Loading: LoadingState = this.Value('loading');
+  public Error: ErrorState = this.Value('error');
+  public Presenting: PresentingState = this.Value('presenting');
+}
+
+export class LoadingState
+{
+  public Message: string = 'loading...';
+}
+
+export class ErrorState
+{
+  public Message: string = 'an error occured';
+}
+
+export class PresentingState
+{
+  public Data: string = 'no data';
+}

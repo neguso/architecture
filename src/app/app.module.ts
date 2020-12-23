@@ -8,12 +8,18 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppFrameworkModule } from './code/app-framework.module';
 import { XModule } from './code/x.module';
 import { YModule } from './code/y.module';
+import { BooksComponent } from './books/books.component';
+import { CommonModule } from '@angular/common';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    HomeComponent,
+    BooksComponent
   ],
   imports: [
+    CommonModule,
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,

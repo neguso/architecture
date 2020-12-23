@@ -1,2 +1,13 @@
-<p>home works!!!</p>
-<p>{{text}}</p>
+<div *ngIf="State.In('loading')">
+  <p>{{State.Loading.Message}}</p>
+</div>
+
+<div *ngIf="State.In('error')">
+  <p>{{State.Error.Message}}</p>
+</div>
+
+<div *ngIf="State.In('presenting')">
+  <p>{{State.Presenting.Data}}</p>
+
+  <button>Some Action</button>
+</div>
