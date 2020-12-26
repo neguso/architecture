@@ -1,4 +1,4 @@
-import { Inject, Injectable, NgModule } from '@angular/core';
+import { Inject, Injectable, Injector, NgModule } from '@angular/core';
 
 import {
   AppFrameworkModule,
@@ -20,6 +20,7 @@ import {
   BoolList
 } from './app-framework.module';
 import { HomeComponent } from '../home/home.component';
+import { BooksComponent } from '../books/books.component';
 
 
 @NgModule({
@@ -605,12 +606,20 @@ const booksdata: Array<Book> = [{
 }];
 
 
-
+@Injectable()
+@Controller(BooksComponent)
 class BooksListController extends ControllerBase
 {
-  constructor(component: IComponent)
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
   {
-    super(component);
+    super(component, model);
+
+    this.Activated.Subscribe(() => this.OnActivated());
+  }
+
+  protected OnActivated(): void
+  {
+
   }
 
 
@@ -627,10 +636,13 @@ class OneController extends ControllerBase
 {
   constructor(component: HomeComponent, model: ModelApplication)
   {
-    super(component);
+    super(component, model);
 
     this.Created.Subscribe(() => {
       console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+    });
+    this.Activated.Subscribe(() => {
+      console.log(`${this.constructor.name} controller activated`);
     });
   }
 }
@@ -641,7 +653,7 @@ class TwoController extends ControllerBase
 {
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
   {
-    super(component);
+    super(component, model);
 
     this.Created.Subscribe(() => { console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`); });
   }
@@ -653,6 +665,7 @@ class ThreeController implements IController
 {
   public Name: string = '';
   public Component: IComponent;
+  public Application: ModelApplication;
   public readonly Active: BoolList = new BoolList();
   public readonly Actions: Array<ActionBase> = [];
   public readonly Created: Event<ControllerCreatedEventArgs> = new Event<ControllerCreatedEventArgs>();
@@ -663,6 +676,7 @@ class ThreeController implements IController
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
   {
     this.Component = component;
+    this.Application = model;
 
     this.Created.Subscribe(() => {
       console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
@@ -678,7 +692,7 @@ class FourController extends ControllerBase
 {
   constructor(component: HomeComponent, model: ModelApplication)
   {
-    super(component);
+    super(component, model);
 
     this.Created.Subscribe(() => {
       console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);

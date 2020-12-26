@@ -1,4 +1,4 @@
-import { NgModule, Type, Injectable, Injector, ValueProvider } from '@angular/core';
+import { NgModule, Type, Injectable, Injector } from '@angular/core';
 
 
 @NgModule({
@@ -12,7 +12,7 @@ export class AppFrameworkModule
 
     ControllerManager.RegisterInjector(injector);
 
-    // initialize application model
+    // default application model
     //...
   }
 }
@@ -51,6 +51,7 @@ export abstract class BaseObject implements IBaseObject
 }
 
 
+
 export interface IModelNode
 {
   Index: number;
@@ -84,6 +85,7 @@ export class ModelApplication implements IModelNode
   public Options: ModelApplicationOptions;
   public DataModels: IDictionary<ModelDataModel> = {};
   public Views: IDictionary<ModelView> = {};
+  public Actions: IDictionary<ModelAction> = {};
 
 
   public constructor()
@@ -204,7 +206,7 @@ export class ModelDataModelMember implements IModelNode, IModelDataModelMember
 }
 
 
-//#region Views
+//#region Views Application Model
 
 
 export abstract class ModelView implements IModelNode
@@ -213,7 +215,7 @@ export abstract class ModelView implements IModelNode
   public Index: number = 0;
   public readonly Parent: IModelNode;
 
-  public Name: string;
+  public Id: string;
   public ObjectType: Type<IBaseObject>;
 
   private caption: string | null = null;
@@ -232,10 +234,10 @@ export abstract class ModelView implements IModelNode
   protected get Model(): ModelApplication { return this.Parent as ModelApplication; }
 
 
-  public constructor(parent: IModelNode, name: string, type: Type<IBaseObject>)
+  public constructor(parent: IModelNode, id: string, type: Type<IBaseObject>)
   {
     this.Parent = parent;
-    this.Name = name;
+    this.Id = id;
     this.ObjectType = type;
   }
 }
@@ -270,6 +272,54 @@ export abstract class ModelViewField implements IModelNode
   {
     this.Parent = parent;
     this.Field = field;
+  }
+}
+
+
+
+export interface IDashboardView
+{
+  Index?: number;
+  Caption?: string | null;
+}
+
+
+export class ModelDashboardView extends ModelView implements IDashboardView
+{
+  constructor(parent: IModelNode, id: string, type: Type<IBaseObject>, init?: IDashboardView)
+  {
+    super(parent, id, type);
+
+    // set default values
+    //...
+
+    // set user provided values
+    Object.assign(this, init);
+  }
+}
+
+export interface IDashboardViewItem
+{
+  Index?: number;
+  Caption?: string | null;
+}
+
+export class ModelDashboardViewItem implements IModelNode, IDashboardViewItem
+{
+  // IModelNode
+  public Index: number = 0;
+  public readonly Parent: IModelNode;
+
+
+  constructor(parent: IModelNode, init?: IModelViewColumn)
+  {
+    this.Parent = parent;
+
+    // set default values
+    //...
+
+    // set user provided values
+    Object.assign(this, init);
   }
 }
 
@@ -321,9 +371,6 @@ export class ModelViewColumn extends ModelViewField implements IModelViewColumn
 
 
 
-
-
-
 export interface IModelDetailView
 {
   Index?: number;
@@ -357,6 +404,7 @@ export interface IModelViewItem
 
 export class ModelViewItem extends ModelViewField implements IModelViewItem
 {
+  //TODO consider removing this prop
   private maxLength: number | null = null;
   public set MaxLength(value: number)
   {
@@ -384,6 +432,64 @@ export class ModelViewItem extends ModelViewField implements IModelViewItem
 
 
 //#endregion
+
+
+
+//#region Actions
+
+export interface IModelAction
+{
+  Index?: number;
+  Container?: string;
+  Caption?: string;
+  ShortCaption?: string;
+  ToolTip?: string;
+}
+
+
+export class ModelAction implements IModelNode, IModelAction
+{
+  // IModelNode
+  public Index: number = 0;
+  public readonly Parent: IModelNode;
+
+  public Id: string;
+  public Container: string = PredefinedContainer.Unspecified;
+  public Caption: string;
+  public ShortCaption: string;
+  public ToolTip: string = '';
+
+
+  constructor(parent: IModelNode, id: string, init?: IModelAction)
+  {
+    this.Parent = parent;
+    this.Id = id;
+
+    // set default values
+    this.Caption = this.Id;
+    this.ShortCaption = this.Caption;
+
+    // set user provided values
+    Object.assign(this, init);
+  }
+}
+
+
+export enum PredefinedContainer
+{
+  Unspecified = 'Unspecified',
+  Menu = 'Menu',
+  Toolbar = 'Toolbar',
+  Navigation = 'Navigation',
+  Status = 'Status',
+  Contextual = 'Contextual'
+}
+
+
+//#endregion
+
+
+
 
 export class EventArgs
 {
@@ -464,7 +570,6 @@ export class EventAggregator
 
     this.Events[name].Trigger(data);
   }
-
 }
 
 
@@ -482,7 +587,7 @@ export abstract class ComponentBase implements IComponent
   public State: StateManager = new StateManager();
 
 
-  constructor(injector: Injector)
+  constructor()
   {
     // register component for controllers
     ControllerManager.RegisterComponent(this);
@@ -517,10 +622,69 @@ export class ActionExecutingEventArgs extends ActionBaseEventArgs
 
 export abstract class ActionBase
 {
+  public Id: string;
+  public Controller: IController;
+  public readonly Active: BoolList = new BoolList();
+  public readonly Enabled: BoolList = new BoolList();
+  //
   public readonly Executing: Event<ActionExecutingEventArgs> = new Event<ActionExecutingEventArgs>();
   public readonly Execute: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
   public readonly Executed: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
   public readonly ExecuteCanceled: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
+
+
+  constructor(id: string, controller: IController)
+  {
+    this.Id = id;
+    this.Controller = controller;
+    this.Controller.Actions.push(this);
+  }
+
+
+  public get Application(): ModelApplication
+  {
+    return this.Controller.Application;
+  }
+
+  private container: string | null = null;
+  public get Container(): string
+  {
+    return this.container ?? this.Application.Actions[this.Id]?.Container ?? PredefinedContainer.Unspecified;
+  }
+  public set Container(value: string)
+  {
+    this.container = value;
+  }
+
+  private caption: string | null = null;
+  public get Caption(): string
+  {
+    return this.caption ?? this.Application.Actions[this.Id]?.Caption ?? this.Id;
+  }
+  public set Caption(value: string)
+  {
+    this.caption = value;
+  }
+
+  private shortCaption: string | null = null;
+  public get ShortCaption(): string
+  {
+    return this.shortCaption ?? this.Application.Actions[this.Id]?.ShortCaption ?? this.Caption;
+  }
+  public set ShortCaption(value: string)
+  {
+    this.shortCaption = value;
+  }
+
+  public toolTip: string | null = null;
+  public get ToolTip(): string
+  {
+    return this.toolTip ?? this.Application.Actions[this.Id]?.ToolTip ?? '';
+  }
+  public set ToolTip(value: string)
+  {
+    this.toolTip = value;
+  }
 
 
   public DoExecute(): void
@@ -536,6 +700,17 @@ export abstract class ActionBase
     }
   }
 }
+
+
+export class SimpleAction extends ActionBase
+{
+  constructor(id: string, controller: IController)
+  {
+    super(id, controller);
+  }
+
+}
+
 
 
 
@@ -705,6 +880,7 @@ export interface IController
 {
   Name: string;
   Component: IComponent;
+  Application: ModelApplication;
   Actions: Array<ActionBase>;
   Active: BoolList;
   Created: Event<ControllerCreatedEventArgs>;
@@ -717,6 +893,7 @@ export abstract class ControllerBase implements IController
 {
   public Name: string = '';
   public Component: IComponent;
+  public Application: ModelApplication;
   public readonly Actions: Array<ActionBase> = [];
   public readonly Active: BoolList = new BoolList();
   public readonly Created: Event<ControllerCreatedEventArgs> = new Event<ControllerCreatedEventArgs>();
@@ -724,20 +901,14 @@ export abstract class ControllerBase implements IController
   public readonly Deactivated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
 
 
-  constructor(component: IComponent)
+  constructor(component: IComponent, application: ModelApplication)
   {
     this.Component = component;
+    this.Application = application;
 
-    this.Created.Subscribe(data => this.OnCreated(data));
     this.Active.ValueChanged.Subscribe(data => this.ActiveStateChanged(data));
   }
 
-
-  protected OnCreated(data: ControllerCreatedEventArgs): void
-  {
-    if(this.Active.Value)
-      this.Activated.Trigger(new ControllerActiveStateChangedEventArgs(this));
-  }
 
   protected ActiveStateChanged(data: BoolValueChangedEventArgs): void
   {
@@ -782,8 +953,9 @@ class ComponentData
 
 export class ControllerManager
 {
-  private Components: IDictionary<ComponentData> = {};
+  private readonly Components: IDictionary<ComponentData> = {};
   private injector: Injector | null = null;
+
 
   private Register(controllerType: Type<IController>, componentType: Type<IComponent>): void
   {
@@ -804,7 +976,11 @@ export class ControllerManager
     {
       this.CreateInstance(controller, this.Components[componentType.name]);
       if(controller.Instance !== null)
+      {
         controller.Instance.Created.Trigger(new ControllerCreatedEventArgs(controller.Instance));
+        if(controller.Instance.Active.Value)
+          controller.Instance.Activated.Trigger(new ControllerActiveStateChangedEventArgs(controller.Instance));
+      }
     }
   }
 
@@ -815,7 +991,6 @@ export class ControllerManager
     return [];
   }
 
-  //private RegisterComponent(component: IComponent, injector: Injector): void
   private RegisterComponent(component: IComponent): void
   {
     // create component entry if necessary
@@ -834,10 +1009,14 @@ export class ControllerManager
       this.CreateInstance(controller, this.Components[component.constructor.name]);
     });
 
-    // fire afterCreated event
+    // fire Created and Activated events
     this.Components[component.constructor.name].Controllers.forEach(controller => {
       if(controller.Instance !== null)
+      {
         controller.Instance.Created.Trigger(new ControllerCreatedEventArgs(controller.Instance));
+        if(controller.Instance.Active.Value)
+          controller.Instance.Activated.Trigger(new ControllerActiveStateChangedEventArgs(controller.Instance));
+      }
     });
   }
 
@@ -878,7 +1057,6 @@ export class ControllerManager
     return ControllerManager.Instance.GetControllers(component);
   }
 
-  //public static RegisterComponent(component: IComponent, injector: Injector): void
   public static RegisterComponent(component: IComponent): void
   {
     ControllerManager.Instance.RegisterComponent(component);
@@ -894,7 +1072,7 @@ export class ControllerManager
 
 
 /**
- * Decorator, register a controller class.
+ * Decorator, register a Controller for a Component.
  */
 export function Controller(componentType: Type<IComponent>): (controllerType: Type<IController>) => void
 {
@@ -1117,4 +1295,65 @@ export class StateChangeEventArgs
 }
 
 //#endregion
+
+
+//#region Views
+
+export abstract class View
+{
+  public Id: string;
+  public readonly Model: ModelView;
+
+
+  constructor(id: string, application: ModelApplication)
+  {
+    this.Id = id;
+    this.Model = application.Views[this.Id];
+  }
+}
+
+
+export abstract class CompositeView extends View
+{
+  public Items: Array<ViewItem> = new Array<ViewItem>();
+
+  constructor(id: string, application: ModelApplication)
+  {
+    super(id, application);
+  }
+}
+
+export class DashboardView extends CompositeView
+{
+
+}
+
+
+export class ObjectView extends CompositeView
+{
+
+}
+
+
+export class ListView extends ObjectView
+{
+
+}
+
+
+export class DetailView extends ObjectView
+{
+
+}
+
+
+
+export abstract class ViewItem
+{
+
+}
+
+
+//#endregion
+
 

@@ -11,12 +11,14 @@ import { YModule } from './code/y.module';
 import { BooksComponent } from './books/books.component';
 import { CommonModule } from '@angular/common';
 import { HomeComponent } from './home/home.component';
+import { MainTemplateComponent } from './main-template/main-template.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    BooksComponent
+    BooksComponent,
+    MainTemplateComponent
   ],
   imports: [
     CommonModule,
