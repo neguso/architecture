@@ -112,10 +112,10 @@ export class ModelApplication implements IModelNode
     this.Views[name] = new ModelListView(this, name, type, node);
   }
 
-  public RegisterListViewColumns(name: string, columns: IDictionary<IModelViewColumn>): void
+  public RegisterListViewColumns(name: string, columns: IDictionary<IModelListViewColumn>): void
   {
     for(const column of Object.keys(columns))
-      (this.Views[name] as ModelListView).Colunms[column] = new ModelViewColumn(this.Views[name], column, columns[column]);
+      (this.Views[name] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[name], column, columns[column]);
   }
 
   public RegisterDetailView(name: string, type: Type<IBaseObject>, node: IModelDetailView): void
@@ -123,10 +123,10 @@ export class ModelApplication implements IModelNode
     this.Views[name] = new ModelDetailView(this, name, type, node);
   }
 
-  public RegisterDetailViewItems(name: string, items: IDictionary<IModelViewItem>): void
+  public RegisterDetailViewItems(name: string, items: IDictionary<IModelDetailViewItem>): void
   {
     for(const item of Object.keys(items))
-      (this.Views[name] as ModelDetailView).Items[item] = new ModelViewItem(this.Views[name], item, items[item]);
+      (this.Views[name] as ModelDetailView).Items[item] = new ModelDetailViewItem(this.Views[name], item, items[item]);
   }
 
   //#endregion
@@ -311,7 +311,7 @@ export class ModelDashboardViewItem implements IModelNode, IDashboardViewItem
   public readonly Parent: IModelNode;
 
 
-  constructor(parent: IModelNode, init?: IModelViewColumn)
+  constructor(parent: IModelNode, init?: IModelListViewColumn)
   {
     this.Parent = parent;
 
@@ -333,7 +333,7 @@ export interface IModelListView
 
 export class ModelListView extends ModelView implements IModelListView
 {
-  public Colunms: IDictionary<ModelViewColumn> = {};
+  public Colunms: IDictionary<ModelListViewColumn> = {};
 
 
   public constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelListView)
@@ -349,15 +349,15 @@ export class ModelListView extends ModelView implements IModelListView
 }
 
 
-export interface IModelViewColumn
+export interface IModelListViewColumn
 {
   Index?: number;
   Caption?: string | null;
 }
 
-export class ModelViewColumn extends ModelViewField implements IModelViewColumn
+export class ModelListViewColumn extends ModelViewField implements IModelListViewColumn
 {
-  constructor(parent: IModelNode, field: string, init?: IModelViewColumn)
+  constructor(parent: IModelNode, field: string, init?: IModelListViewColumn)
   {
     super(parent, field);
 
@@ -379,7 +379,7 @@ export interface IModelDetailView
 
 export class ModelDetailView extends ModelView implements IModelDetailView
 {
-  public Items: IDictionary<ModelViewItem> = {};
+  public Items: IDictionary<ModelDetailViewItem> = {};
 
 
   constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelDetailView)
@@ -395,14 +395,14 @@ export class ModelDetailView extends ModelView implements IModelDetailView
 }
 
 
-export interface IModelViewItem
+export interface IModelDetailViewItem
 {
   Index?: number;
   Caption?: string | null;
   MaxLength?: number;
 }
 
-export class ModelViewItem extends ModelViewField implements IModelViewItem
+export class ModelDetailViewItem extends ModelViewField implements IModelDetailViewItem
 {
   //TODO consider removing this prop
   private maxLength: number | null = null;
@@ -418,7 +418,7 @@ export class ModelViewItem extends ModelViewField implements IModelViewItem
   }
 
 
-  constructor(parent: IModelNode, field: string, init?: IModelViewItem)
+  constructor(parent: IModelNode, field: string, init?: IModelDetailViewItem)
   {
     super(parent, field);
 
@@ -1317,6 +1317,7 @@ export abstract class CompositeView extends View
 {
   public Items: Array<ViewItem> = new Array<ViewItem>();
 
+
   constructor(id: string, application: ModelApplication)
   {
     super(id, application);
@@ -1331,21 +1332,41 @@ export class DashboardView extends CompositeView
 
 export class ObjectView extends CompositeView
 {
+  public readonly Type: Type<IBaseObject>;
 
+
+  constructor(id: string, type: Type<IBaseObject>, application: ModelApplication)
+  {
+    super(id, application);
+
+    this.Type = type;
+  }
 }
 
 
 export class ListView extends ObjectView
 {
 
+  constructor(id: string, type: Type<IBaseObject>, collectionSource: CollectionSource, application: ModelApplication)
+  {
+    super(id, type, application);
+  }
 }
 
 
 export class DetailView extends ObjectView
 {
+  public CurrentObject: IBaseObject;
+  public Mode: ViewEditMode = ViewEditMode.Edit;
 
+
+  constructor(id: string, type: Type<IBaseObject>, object: IBaseObject, application: ModelApplication)
+  {
+    super(id, type, application);
+
+    this.CurrentObject = object;
+  }
 }
-
 
 
 export abstract class ViewItem
@@ -1354,6 +1375,26 @@ export abstract class ViewItem
 }
 
 
+export enum ViewEditMode
+{
+  Edit,
+  View
+}
+
+
+
+
+export class CollectionSource
+{
+  public readonly Type: Type<IBaseObject>;
+  public readonly Model: ModelDataModel;
+
+
+  constructor(type: Type<IBaseObject>, application: ModelApplication)
+  {
+    this.Type = type;
+    this.Model = application.DataModels[type.name];
+  }
+}
+
 //#endregion
-
-
