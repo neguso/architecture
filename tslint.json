@@ -125,7 +125,7 @@
     "directive-class-suffix": false,
     "no-conflicting-lifecycle": true,
     "no-host-metadata-property": true,
-    "no-input-rename": true,
+    "no-input-rename": false,
     "no-inputs-metadata-property": true,
     "no-output-native": true,
     "no-output-on-prefix": true,
@@ -136,13 +136,13 @@
     "use-lifecycle-interface": false,
     "use-pipe-transform-interface": true,
     "directive-selector": [
-      true,
+      false,
       "attribute",
       "app",
       "camelCase"
     ],
     "component-selector": [
-      true,
+      false,
       "element",
       "app",
       "kebab-case"

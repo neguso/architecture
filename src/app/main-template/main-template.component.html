@@ -1,5 +1,7 @@
 <div>
   header container
+  <actions-container-toolbar name="header-toolbar1"></actions-container-toolbar>
+  <actions-container-toolbar name="header-toolbar2"></actions-container-toolbar>
 </div>
 
 <div>
@@ -13,3 +15,9 @@
 <div>
   footer container
 </div>
+
+
+<!-- specific to view and object type -->
+
+<static-text [item]="View!.Items['Title']"></static-text>
+<static-text [item]="View!.Items['Description']"></static-text>

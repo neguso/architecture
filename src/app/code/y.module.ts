@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
-import { AppFrameworkModule, IBaseObject, ModelApplication } from './app-framework.module';
+import { AppFrameworkModule } from './app-framework.module';
+import { IBaseObject, ModelApplication } from './core';
 import { Book, XModule } from './x.module';
 
 

@@ -6,7 +6,7 @@ import {
   IComponent,
   ModelApplication,
   StateManager
-} from '../code/app-framework.module';
+} from '../code/core';
 
 
 @Component({
@@ -16,7 +16,10 @@ import {
 })
 export class HomeComponent implements IComponent, OnInit
 {
+  private static counter: number = 0;
+
   // IComponent
+  public UniqueId: string = (HomeComponent.counter++).toString();
   public Events: EventAggregator = new EventAggregator();
   public State: HomeState = new HomeState();
 

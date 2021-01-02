@@ -1,11 +1,9 @@
-import { Inject, Injectable, Injector, NgModule } from '@angular/core';
+import { Inject, Injectable, NgModule } from '@angular/core';
 
 import {
-  AppFrameworkModule,
   Event,
   BaseObject,
   ModelApplication,
-  FieldType,
   ModelDataModelMember,
   Controller,
   ControllerBase,
@@ -18,9 +16,10 @@ import {
   StateManager,
   ControllerActiveStateChangedEventArgs,
   BoolList
-} from './app-framework.module';
+} from './core';
 import { HomeComponent } from '../home/home.component';
 import { BooksComponent } from '../books/books.component';
+import { AppFrameworkModule } from './app-framework.module';
 
 
 @NgModule({
@@ -47,8 +46,8 @@ export class XModule
     // create data model nodes
     model.RegisterDataModel(Book, { Caption: 'Book' });
     model.RegisterDataModelMembers(Book, {
-      Title: { Type: FieldType.String, Caption: 'Book Title', Index: 0 },
-      Description: { Type: FieldType.String, AllowNull: true }
+      Title: { Type: String, Caption: 'Book Title', Index: 0 },
+      Description: { Type: String, AllowNull: true }
     });
     model.DataModels['Book'].Members['ISDN'] = new ModelDataModelMember(model, 'ISDN');
 
@@ -65,10 +64,10 @@ export class XModule
     model.RegisterDetailView('Book_DetailView', Book, {
       Caption: 'View Book'
     });
-    model.RegisterDetailViewItems('Book_DetailView', {
-      Title: { Caption: 'Input Title' },
-      Description: { MaxLength: 100 }
-    });
+    // model.RegisterDetailViewItems('Book_DetailView', {
+    //   Title: { Caption: 'Input Title' },
+    //   Description: { MaxLength: 100 }
+    // });
 
 
   }
