@@ -46,6 +46,7 @@ export class Application
     //TODO setup specific application with params
   }
 
+  //TODO move this into a system module
   public CreateDetailView(viewId: string): DetailView
   {
     const model = this.Model.Views[viewId] as ModelDetailView;
@@ -53,10 +54,17 @@ export class Application
 
     Object.entries(model.Items).forEach(entry => {
 
-      if(entry[1] instanceof ModelStaticTextItem)
-        view.Items[entry[0]] = new StaticTextViewItem(entry[0], view);
+      const key = entry[0];
+      const value = entry[1];
 
-      //throw new Error(`Unknown detail view item type: [${entry[1].constructor.name}].`);
+      if(value instanceof ModelStaticTextItem)
+        view.Items[key] = new StaticTextViewItem(key, view);
+      else if(value instanceof ModelStaticImageItem)
+        view.Items[key] = new StaticImageViewItem(key, view);
+      else if(value instanceof ModelActionContainerItem)
+        view.Items[key] = new ActionsContainerViewItem(key, view);
+      else
+        throw new Error(`Unknown detail view item type: ${key}:${value.constructor.name}.`);
     });
 
     return view;
@@ -96,7 +104,7 @@ export class ModelApplication implements IModelNode
 {
   // IModelNode
   public Index: number = 0;
-  public Parent: IModelNode | null = null;
+  public readonly Parent: IModelNode | null = null;
 
   public Title: string = '';
   public Description: string = '';
@@ -136,14 +144,29 @@ export class ModelApplication implements IModelNode
       (this.Views[name] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[name], column, columns[column]);
   }
 
-  public RegisterDetailView(name: string, type: Type<IBaseObject>, node: IModelDetailView): void
+  public RegisterDetailView(name: string, type: Type<IBaseObject>, init?: IModelDetailView): void
   {
-    this.Views[name] = new ModelDetailView(this, name, type, node);
+    this.Views[name] = new ModelDetailView(this, name, type, init);
   }
 
-  public RegisterStaticTextItem(name: string, field: string, item: IModelStaticTextItem): void
+  public RegisterStaticTextItem(name: string, field: string, init?: IModelStaticTextItem): void
   {
-    (this.Views[name] as ModelDetailView).Items[field] = new ModelStaticTextItem(this.Views[name], field, item);
+    (this.Views[name] as ModelDetailView).Items[field] = new ModelStaticTextItem(this.Views[name], field, init);
+  }
+
+  public RegisterStaticImageItem(name: string, field: string, init?: IModelStaticImageItem): void
+  {
+    (this.Views[name] as ModelDetailView).Items[field] = new ModelStaticImageItem(this.Views[name], field, init);
+  }
+
+  public RegisterActionsContainerItem(name: string, container: string, init?: IModelActionContainerItem): void
+  {
+    (this.Views[name] as ModelDetailView).Items[container] = new ModelActionContainerItem(this.Views[name], container, init);
+  }
+
+  public RegisterAction(name: string, init?: IModelAction): void
+  {
+
   }
 
   // public RegisterDetailViewItems(name: string, items: IDictionary<IModelDetailViewItem>): void
@@ -167,7 +190,7 @@ export class ModelDataModel implements IModelNode, IModelDataModel
 {
   // IModelNode
   public Index: number = 0;
-  public Parent: IModelNode;
+  public readonly Parent: IModelNode;
 
   public ObjectType: Type<IBaseObject>;
   public Caption: string;
@@ -205,7 +228,7 @@ export class ModelDataModelMember implements IModelNode, IModelDataModelMember
 {
   // IModelNode
   public Index: number = 0;
-  public Parent: IModelNode;
+  public readonly Parent: IModelNode;
 
   public Field: string;
   public Type: Type<any> = String;
@@ -458,12 +481,12 @@ export abstract class ModelDetailViewItem extends ModelViewField implements IMod
 
 export enum HorizontalAlign
 {
-  NotSet, Left, Center, Right
+  Left, Center, Right
 }
 
 export enum VerticalAlign
 {
-  NotSet, Top, Middle, Bottom
+  Top, Middle, Bottom
 }
 
 
@@ -479,11 +502,11 @@ export interface IModelStaticTextItem
 
 export class ModelStaticTextItem extends ModelDetailViewItem implements IModelStaticTextItem
 {
-  public HorizontalAlign: HorizontalAlign = HorizontalAlign.NotSet;
-  public VerticalAlign: VerticalAlign = VerticalAlign.NotSet;
+  public HorizontalAlign: HorizontalAlign = HorizontalAlign.Left;
+  public VerticalAlign: VerticalAlign = VerticalAlign.Top;
 
 
-  constructor(parent: IModelNode, field: string, init?: IModelDetailViewItem)
+  constructor(parent: IModelNode, field: string, init?: IModelStaticTextItem)
   {
     super(parent, field);
 
@@ -494,6 +517,87 @@ export class ModelStaticTextItem extends ModelDetailViewItem implements IModelSt
     Object.assign(this, init);
   }
 }
+
+
+export enum ImageSizeMode
+{
+  Normal, Stretch, Center, Zoom
+}
+
+
+export interface IModelStaticImageItem
+{
+  Index?: number;
+  Caption?: string | null;
+  MaxLength?: number;
+  HorizontalAlign?: HorizontalAlign;
+  VerticalAlign?: VerticalAlign;
+  SizeMode?: ImageSizeMode;
+}
+
+
+export class ModelStaticImageItem extends ModelDetailViewItem implements IModelStaticImageItem
+{
+  public HorizontalAlign: HorizontalAlign = HorizontalAlign.Left;
+  public VerticalAlign: VerticalAlign = VerticalAlign.Top;
+  public SizeMode: ImageSizeMode = ImageSizeMode.Normal;
+
+
+  constructor(parent: IModelNode, field: string, init?: IModelStaticImageItem)
+  {
+    super(parent, field);
+
+    // set default values
+    //...
+
+    // set user provided values
+    Object.assign(this, init);
+  }
+}
+
+
+
+export enum ActionsDisplayStyle
+{
+  Default, Caption, CaptionAndImage, Image
+}
+
+export enum ActionsOrientation
+{
+  Horizontal, Vertical
+}
+
+
+export interface IModelActionContainerItem
+{
+  Index?: number;
+  Caption?: string | null;
+  DisplayStyle?: ActionsDisplayStyle;
+  Orientation?: ActionsOrientation;
+}
+
+
+export class ModelActionContainerItem extends ModelDetailViewItem implements IModelActionContainerItem
+{
+  public DisplayStyle: ActionsDisplayStyle = ActionsDisplayStyle.Default;
+  public Orientation: ActionsOrientation = ActionsOrientation.Horizontal;
+  public readonly Container: string;
+
+
+  constructor(parent: IModelNode, container: string, init?: IModelActionContainerItem)
+  {
+    super(parent, '');
+
+    this.Container = container;
+
+    // set default values
+    //...
+
+    // set user provided values
+    Object.assign(this, init);
+  }
+}
+
 
 
 //#endregion
@@ -652,7 +756,7 @@ export interface IComponent
 
 export abstract class ComponentBase implements IComponent
 {
-  public readonly UniqueId: string = ComponentBase.GetUniqueId();
+  public readonly UniqueId: string = ComponentBase.getInstanceCounter();
   public Events: EventAggregator = new EventAggregator();
   public State: StateManager = new StateManager();
 
@@ -664,10 +768,10 @@ export abstract class ComponentBase implements IComponent
   }
 
 
-  private static uniqueCounter: number = 0;
-  private static GetUniqueId(): string
+  private static instanceCounter: number = 0;
+  private static getInstanceCounter(): string
   {
-    return (ComponentBase.uniqueCounter++).toString();
+    return (ComponentBase.instanceCounter++).toString();
   }
 }
 
@@ -864,7 +968,7 @@ export class BoolList
   public readonly ValueChanged: Event<BoolValueChangedEventArgs> = new Event<BoolValueChangedEventArgs>();
 
 
-  constructor(implicitValue: boolean = true, operatorType: BoolListOperatorType = BoolListOperatorType.And)
+  constructor(implicitValue: boolean = false, operatorType: BoolListOperatorType = BoolListOperatorType.And)
   {
     this.ImplicitValue = implicitValue;
     this.OperatorType = operatorType;
@@ -963,33 +1067,6 @@ export class BoolList
 
 
 
-
-export class ControllerCreatedEventArgs extends EventArgs
-{
-  public Controller: IController;
-
-  constructor(controller: IController)
-  {
-    super();
-
-    this.Controller = controller;
-  }
-}
-
-export class ControllerActiveStateChangedEventArgs extends EventArgs
-{
-  public Controller: IController;
-
-  constructor(controller: IController)
-  {
-    super();
-
-    this.Controller = controller;
-  }
-}
-
-
-
 export interface IController
 {
   Name: string;
@@ -997,22 +1074,22 @@ export interface IController
   Application: ModelApplication;
   Actions: Array<ActionBase>;
   Active: BoolList;
-  Created: Event<ControllerCreatedEventArgs>;
-  Activated: Event<ControllerActiveStateChangedEventArgs>;
-  Deactivated: Event<ControllerActiveStateChangedEventArgs>;
+  Created: Event<EventArgs>;
+  Activated: Event<EventArgs>;
+  Deactivated: Event<EventArgs>;
 }
 
 
-export abstract class ControllerBase implements IController
+export abstract class ComponentController implements IController
 {
   public Name: string = '';
   public Component: IComponent;
   public Application: ModelApplication;
   public readonly Actions: Array<ActionBase> = [];
   public readonly Active: BoolList = new BoolList();
-  public readonly Created: Event<ControllerCreatedEventArgs> = new Event<ControllerCreatedEventArgs>();
-  public readonly Activated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
-  public readonly Deactivated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
+  public readonly Created: Event<EventArgs> = new Event<EventArgs>();
+  public readonly Activated: Event<EventArgs> = new Event<EventArgs>();
+  public readonly Deactivated: Event<EventArgs> = new Event<EventArgs>();
 
 
   constructor(component: IComponent, application: ModelApplication)
@@ -1020,18 +1097,54 @@ export abstract class ControllerBase implements IController
     this.Component = component;
     this.Application = application;
 
+    this.Initialize();
+
     this.Active.ValueChanged.Subscribe(data => this.ActiveStateChanged(data));
   }
 
 
+  protected Initialize(): void { }
+
   protected ActiveStateChanged(data: BoolValueChangedEventArgs): void
   {
     if(data.NewValue)
-      this.Activated.Trigger(new ControllerActiveStateChangedEventArgs(this));
+      this.Activated.Trigger(EventArgs.Empty);
     else
-      this.Deactivated.Trigger(new ControllerActiveStateChangedEventArgs(this));
+      this.Deactivated.Trigger(EventArgs.Empty);
   }
 }
+
+
+export class ViewController extends ComponentController
+{
+  public View: View | null = null;
+
+  public readonly TargetViews: Array<string> = [];
+
+
+  constructor(component: IComponent, application: ModelApplication)
+  {
+    super(component, application);
+  }
+
+
+  protected Initialize(): void
+  {
+    this.Active.SetItemValue('View Assigned', false);
+  }
+
+
+  public SetView(view: View): void
+  {
+    // check if view satisfy conditions
+    // assign view and activate controller xxxxxxxxxxxxxxxxxxxxxxxx
+  }
+}
+
+
+/**
+ * Created -> Activated
+ */
 
 
 //#region Controller manager
@@ -1063,14 +1176,12 @@ class ComponentInstance
 class ComponentData
 {
   public Type: Type<IComponent>;
-  //public Instance: IComponent | null;
   public readonly Controllers: Array<Type<IController>> = [];
   public Instances: IDictionary<ComponentInstance> = {};
 
   constructor(type: Type<IComponent>)
   {
     this.Type = type;
-    //this.Instance = instance;
   }
 }
 
@@ -1103,9 +1214,8 @@ export class ControllerManager
       componentInstance.Controllers.push(controllerData);
 
       // fire Created and Activated events
-      controllerData.Instance.Created.Trigger(new ControllerCreatedEventArgs(controllerData.Instance));
-      if(controllerData.Instance.Active.Value)
-        controllerData.Instance.Activated.Trigger(new ControllerActiveStateChangedEventArgs(controllerData.Instance));
+      controllerData.Instance.Created.Trigger(EventArgs.Empty);
+      controllerData.Instance.Active.SetItemValue('Controller Created', true);
     });
   }
 
@@ -1137,9 +1247,8 @@ export class ControllerManager
     componentInstance.Controllers.forEach(controllerData => {
       if(controllerData.Instance !== null)
       {
-        controllerData.Instance.Created.Trigger(new ControllerCreatedEventArgs(controllerData.Instance));
-        if(controllerData.Instance.Active.Value)
-          controllerData.Instance.Activated.Trigger(new ControllerActiveStateChangedEventArgs(controllerData.Instance));
+        controllerData.Instance.Created.Trigger(EventArgs.Empty);
+        controllerData.Instance.Active.SetItemValue('Controller Created', true);
       }
     });
   }
@@ -1170,15 +1279,11 @@ export class ControllerManager
     return ControllerManager.instance;
   }
 
+
   public static Register(controllerType: Type<IController>, componentType: Type<IComponent>): void
   {
     console.log(`Register controller ${controllerType.name} with component ${componentType.name}`);
     ControllerManager.Instance.Register(controllerType, componentType);
-  }
-
-  public static Controllers(component: IComponent): Array<IController>
-  {
-    return ControllerManager.Instance.GetControllers(component);
   }
 
   public static RegisterComponent(component: IComponent): void
@@ -1190,6 +1295,17 @@ export class ControllerManager
   {
     ControllerManager.Instance.RegisterInjector(injector);
   }
+
+  public static GetControllers(component: IComponent): Array<IController>
+  {
+    return ControllerManager.Instance.GetControllers(component);
+  }
+
+  public static GetController(component: IComponent, type: Type<IController>): IController | null
+  {
+    return ControllerManager.Instance.GetControllers(component).find(controller => controller.constructor === type) ?? null;
+  }
+
 }
 
 
@@ -1200,9 +1316,7 @@ export class ControllerManager
  */
 export function Controller(componentType: Type<IComponent>): (controllerType: Type<IController>) => void
 {
-  return (controllerType: Type<IController>): void => {
-    ControllerManager.Register(controllerType, componentType);
-  };
+  return (controllerType: Type<IController>): void => { ControllerManager.Register(controllerType, componentType); };
 }
 
 //#endregion
@@ -1530,9 +1644,9 @@ export abstract class ViewItem
 }
 
 
+
 export class StaticTextViewItem extends ViewItem
 {
-
   constructor(id: string, view: DetailView)
   {
     super(id, view);
@@ -1553,10 +1667,51 @@ export class StaticTextViewItem extends ViewItem
     const field = this.Model?.Field ?? null;
     if(object === null || field === null)
       return '';
-
     return object[field].toString();
   }
 }
+
+
+
+export class StaticImageViewItem extends ViewItem
+{
+  constructor(id: string, view: DetailView)
+  {
+    super(id, view);
+  }
+
+
+  private caption: string | null = null;
+  public get Caption(): string
+  {
+    if(this.caption === null)
+      return this.Model?.Caption ?? '';
+    return this.caption;
+  }
+
+  public get Url(): string
+  {
+    const object = (this.View as DetailView).CurrentObject;
+    const field = this.Model?.Field ?? null;
+    if(object === null || field === null)
+      return '';
+    return object[field].toString();
+  }
+}
+
+
+
+export class ActionsContainerViewItem extends ViewItem
+{
+  constructor(id: string, view: DetailView)
+  {
+    super(id, view);
+  }
+
+
+
+}
+
 
 
 

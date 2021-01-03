@@ -6,16 +6,15 @@ import {
   ModelApplication,
   ModelDataModelMember,
   Controller,
-  ControllerBase,
+  ComponentController,
   ControllerManager,
   IComponent,
   IController,
   ActionBase,
-  ControllerCreatedEventArgs,
   ArrayStore,
   StateManager,
-  ControllerActiveStateChangedEventArgs,
-  BoolList
+  BoolList,
+  EventArgs
 } from './core';
 import { HomeComponent } from '../home/home.component';
 import { BooksComponent } from '../books/books.component';
@@ -607,7 +606,7 @@ const booksdata: Array<Book> = [{
 
 @Injectable()
 @Controller(BooksComponent)
-class BooksListController extends ControllerBase
+class BooksListController extends ComponentController
 {
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
   {
@@ -631,14 +630,14 @@ class BooksListController extends ControllerBase
 
 @Injectable()
 @Controller(HomeComponent)
-class OneController extends ControllerBase
+class OneController extends ComponentController
 {
   constructor(component: HomeComponent, model: ModelApplication)
   {
     super(component, model);
 
     this.Created.Subscribe(() => {
-      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`);
     });
     this.Activated.Subscribe(() => {
       console.log(`${this.constructor.name} controller activated`);
@@ -648,13 +647,13 @@ class OneController extends ControllerBase
 
 @Injectable()
 @Controller(HomeComponent)
-class TwoController extends ControllerBase
+class TwoController extends ComponentController
 {
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
   {
     super(component, model);
 
-    this.Created.Subscribe(() => { console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`); });
+    this.Created.Subscribe(() => { console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`); });
   }
 }
 
@@ -667,9 +666,9 @@ class ThreeController implements IController
   public Application: ModelApplication;
   public readonly Active: BoolList = new BoolList();
   public readonly Actions: Array<ActionBase> = [];
-  public readonly Created: Event<ControllerCreatedEventArgs> = new Event<ControllerCreatedEventArgs>();
-  public readonly Activated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
-  public readonly Deactivated: Event<ControllerActiveStateChangedEventArgs> = new Event<ControllerActiveStateChangedEventArgs>();
+  public readonly Created: Event<EventArgs> = new Event<EventArgs>();
+  public readonly Activated: Event<EventArgs> = new Event<EventArgs>();
+  public readonly Deactivated: Event<EventArgs> = new Event<EventArgs>();
 
 
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
@@ -678,7 +677,7 @@ class ThreeController implements IController
     this.Application = model;
 
     this.Created.Subscribe(() => {
-      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`);
 
       // non-declarative controller registration
       ControllerManager.Register(FourController, HomeComponent);
@@ -687,14 +686,14 @@ class ThreeController implements IController
 }
 
 @Injectable()
-class FourController extends ControllerBase
+class FourController extends ComponentController
 {
   constructor(component: HomeComponent, model: ModelApplication)
   {
     super(component, model);
 
     this.Created.Subscribe(() => {
-      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.Controllers(component).length} controllers registered for component`);
+      console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`);
     });
   }
 }

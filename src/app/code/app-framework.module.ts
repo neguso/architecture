@@ -3,15 +3,14 @@ import { MatButtonModule } from '@angular/material/button';
 
 import { Application } from './core';
 
-import { ActionsContainerToolbarComponent } from '../actions-containers/toolbar/actions-container-toolbar.component';
-import { ActionContainerController } from './controllers';
-import { StaticTextViewItemComponent } from './components';
+import { StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent } from './components';
+import { DetailViewController } from './controllers';
 
 
 @NgModule({
-  providers: [ActionContainerController],
-  declarations: [ActionsContainerToolbarComponent, StaticTextViewItemComponent],
-  exports: [ActionsContainerToolbarComponent, StaticTextViewItemComponent],
+  providers: [DetailViewController],
+  declarations: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent],
+  exports: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent],
   imports: [MatButtonModule]
 })
 export class AppFrameworkModule

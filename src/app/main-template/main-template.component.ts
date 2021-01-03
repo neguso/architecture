@@ -17,19 +17,19 @@ export class MainTemplateComponent extends ComponentBase implements OnInit
   public View: DetailView | null = null;
 
 
-  constructor(route: ActivatedRoute, application: Application)
+  constructor(application: Application, route: ActivatedRoute)
   {
     super();
 
-    this.Route = route;
     this.application = application;
+    this.Route = route;
   }
 
 
   public ngOnInit(): void
   {
     this.Route.queryParams.subscribe(params => {
-      console.log(params);
+      console.log(`Component view parameter = ${params['view']}`);
 
       // params[view]
       this.View = this.application.CreateDetailView('About_DetailView');
