@@ -69,12 +69,7 @@ export class Application
 
     return view;
   }
-
-
-
 }
-
-
 
 
 
@@ -108,10 +103,10 @@ export class ModelApplication implements IModelNode
 
   public Title: string = '';
   public Description: string = '';
-  public Options: ModelApplicationOptions;
-  public DataModels: IDictionary<ModelDataModel> = {};
-  public Views: IDictionary<ModelView> = {};
-  public Actions: IDictionary<ModelAction> = {};
+  public readonly Options: ModelApplicationOptions;
+  public readonly DataModels: IDictionary<ModelDataModel> = {};
+  public readonly Views: IDictionary<ModelView> = {};
+  public readonly Actions: IDictionary<ModelAction> = {};
 
 
   public constructor()
@@ -194,8 +189,8 @@ export class ModelDataModel implements IModelNode, IModelDataModel
 
   public ObjectType: Type<IBaseObject>;
   public Caption: string;
-  public Members: IDictionary<ModelDataModelMember> = {};
-  public DataStore: DataStore<BaseObject> = new ArrayStore<BaseObject>();
+  public readonly Members: IDictionary<ModelDataModelMember> = {};
+  public DataStore: DataStore<BaseObject> | null = null;
 
 
   public constructor(parent: IModelNode, objectType: Type<IBaseObject>, init?: IModelDataModel)
@@ -670,7 +665,7 @@ export class EventArgs
 
 export class Event<T extends EventArgs>
 {
-  protected Handlers: Array<(data: T) => void> = [];
+  protected readonly Handlers: Array<(data: T) => void> = [];
 
 
   public Subscribe(handler: (data: T) => void): void
@@ -698,7 +693,7 @@ export class Event<T extends EventArgs>
 
 export class EventAggregator
 {
-  protected Events: { [key: string]: Event<any> } = {};
+  protected Events: IDictionary<Event<any>> = {};
 
 
   public Register(name: string): void
@@ -749,15 +744,16 @@ export interface IComponent
 {
   UniqueId: string;
   Events: EventAggregator;
-  //View: View;
+  View: View | null;
   State: StateManager;
 }
 
 
-export abstract class ComponentBase implements IComponent
+export class ComponentBase implements IComponent
 {
   public readonly UniqueId: string = ComponentBase.getInstanceCounter();
   public Events: EventAggregator = new EventAggregator();
+  public View: View | null = null;
   public State: StateManager = new StateManager();
 
 
@@ -765,6 +761,14 @@ export abstract class ComponentBase implements IComponent
   {
     // register component for controllers
     ControllerManager.RegisterComponent(this);
+  }
+
+
+  public SetView(view: View): void
+  {
+    if(this.View !== null)
+      ControllerManager.SetView(null, this);
+    ControllerManager.SetView(view, this);
   }
 
 
@@ -1133,18 +1137,23 @@ export class ViewController extends ComponentController
     this.Active.SetItemValue('View Assigned', false);
   }
 
+  protected Match(view: View): boolean
+  {
+    // check if view satisfy conditions for controller to be activated
+    return this.TargetViews.length === 0 || this.TargetViews.includes(view.Id);
+  }
+
 
   public SetView(view: View): void
   {
-    // check if view satisfy conditions
-    // assign view and activate controller xxxxxxxxxxxxxxxxxxxxxxxx
+    if(this.Match(view))
+    {
+      // assign view and activate
+      this.View = view;
+      this.Active.SetItemValue('View Assigned', true);
+    }
   }
 }
-
-
-/**
- * Created -> Activated
- */
 
 
 //#region Controller manager
@@ -1206,17 +1215,45 @@ export class ControllerManager
     // create controller entry
     this.Components[componentType.name].Controllers.push(controllerType);
 
-    // create controller instance if component instances already registered
-    Object.values(this.Components[componentType.name].Instances).forEach(componentInstance => {
+    // // create controller instance if component instances already registered
+    // Object.values(this.Components[componentType.name].Instances).forEach(componentInstance => {
 
-      // create controller instance
-      const controllerData = new ControllerData(controllerType, this.CreateInstance(controllerType, componentInstance.Instance));
-      componentInstance.Controllers.push(controllerData);
+    //   // create controller instance
+    //   const controllerData = new ControllerData(controllerType, this.CreateInstance(controllerType, componentInstance.Instance));
+    //   componentInstance.Controllers.push(controllerData);
 
-      // fire Created and Activated events
-      controllerData.Instance.Created.Trigger(EventArgs.Empty);
-      controllerData.Instance.Active.SetItemValue('Controller Created', true);
+    //   // fire Created and Activated events
+    //   controllerData.Instance.Created.Trigger(EventArgs.Empty);
+    //   controllerData.Instance.Active.SetItemValue('Controller Created', true);
+    // });
+
+    // create controller instance for all instantiated components or that derive from component
+    Object.values(this.Components).filter(e => e.Type === componentType || this.Extends(e.Type, componentType)).forEach(componentData => {
+
+      Object.values(componentData.Instances).forEach(componentInstance => {
+
+        // create controller instance
+        const controllerData = new ControllerData(controllerType, this.CreateInstance(controllerType, componentInstance.Instance));
+        componentInstance.Controllers.push(controllerData);
+
+        // fire Created and Activated events
+        controllerData.Instance.Created.Trigger(EventArgs.Empty);
+        controllerData.Instance.Active.SetItemValue('Controller Created', true);
+      });
+
     });
+
+  }
+
+  private Extends(derived: Type<IComponent>, base: Type<IComponent>): boolean
+  {
+    if(derived === Object.prototype.constructor)
+      return false;
+
+    if(Object.getPrototypeOf(derived.prototype).constructor === base.prototype.constructor)
+      return true;
+    else
+      return this.Extends(Object.getPrototypeOf(derived.prototype).constructor, base);
   }
 
   private GetControllers(component: IComponent): Array<IController>
@@ -1238,9 +1275,26 @@ export class ControllerManager
 
     this.Components[component.constructor.name].Instances[component.UniqueId] = componentInstance;
 
-    // create controllers instances
-    this.Components[component.constructor.name].Controllers.forEach(controllerType => {
-      componentInstance.Controllers.push(new ControllerData(controllerType, this.CreateInstance(controllerType, component)));
+    // // create controllers instances
+    // this.Components[component.constructor.name].Controllers.forEach(controllerType => {
+    //   componentInstance.Controllers.push(new ControllerData(controllerType, this.CreateInstance(controllerType, component)));
+    // });
+
+    // // fire Created and Activated events
+    // componentInstance.Controllers.forEach(controllerData => {
+    //   if(controllerData.Instance !== null)
+    //   {
+    //     controllerData.Instance.Created.Trigger(EventArgs.Empty);
+    //     controllerData.Instance.Active.SetItemValue('Controller Created', true);
+    //   }
+    // });
+
+    // create controllers instances from component and all extended components
+    Object.values(this.Components).filter(e => e.Type === component.constructor || this.Extends(component.constructor as Type<IComponent>, e.Type)).forEach(componentData => {
+      Object.values(componentData.Controllers).forEach(controllerType => {
+        // create controllers instances
+        componentInstance.Controllers.push(new ControllerData(controllerType, this.CreateInstance(controllerType, component)));
+      });
     });
 
     // fire Created and Activated events
@@ -1288,6 +1342,7 @@ export class ControllerManager
 
   public static RegisterComponent(component: IComponent): void
   {
+    console.log(`Register component instance ${component.constructor.name}:${component.UniqueId}`);
     ControllerManager.Instance.RegisterComponent(component);
   }
 
@@ -1306,6 +1361,10 @@ export class ControllerManager
     return ControllerManager.Instance.GetControllers(component).find(controller => controller.constructor === type) ?? null;
   }
 
+  public static SetView(view: View | null, component: IComponent): void
+  {
+    throw new Error('Method not implemented.');
+  }
 }
 
 

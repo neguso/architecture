@@ -86,7 +86,7 @@ export class AboutDataStore extends ArrayStore<About>
 
 
 @Injectable()
-@Controller(MainTemplateComponent)
+//@Controller(MainTemplateComponent)
 export class MainController extends ComponentController
 {
   constructor(component: MainTemplateComponent, application: ModelApplication)
@@ -115,7 +115,7 @@ export class MainController extends ComponentController
 
 
 @Injectable()
-@Controller(MainTemplateComponent)
+//@Controller(MainTemplateComponent)
 export class AboutViewController extends ViewController
 {
   private HelloAction: SimpleAction;
@@ -125,7 +125,7 @@ export class AboutViewController extends ViewController
   {
     super(component, application);
 
-    // this controller activates only for components that are for specified view
+    // this controller activates only for components that uses the specified views
     this.TargetViews.push('About_DetailView');
 
     this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created`); });

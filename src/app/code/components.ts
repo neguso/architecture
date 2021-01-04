@@ -5,7 +5,7 @@ import { ActionsContainerViewItem, StaticImageViewItem, StaticTextViewItem, View
 
 @Component({
   selector: 'static-text',
-  template: '<div>{{StaticTextItem?.Caption}}: {{StaticTextItem?.Text}}</div>'
+  template: `<div>{{StaticTextItem?.Caption}}: {{StaticTextItem?.Text}}</div>`
 })
 export class StaticTextViewItemComponent
 {

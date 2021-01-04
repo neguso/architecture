@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { Application, ComponentBase, DetailView, StaticTextViewItem, ViewItem } from '../code/core';
+import { Application, ComponentBase, DetailView } from '../code/core';
 
 
 @Component({

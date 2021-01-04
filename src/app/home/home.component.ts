@@ -5,7 +5,8 @@ import {
   EventAggregator,
   IComponent,
   ModelApplication,
-  StateManager
+  StateManager,
+  View
 } from '../code/core';
 
 
@@ -21,6 +22,7 @@ export class HomeComponent implements IComponent, OnInit
   // IComponent
   public UniqueId: string = (HomeComponent.counter++).toString();
   public Events: EventAggregator = new EventAggregator();
+  public View: View | null = null;
   public State: HomeState = new HomeState();
 
 
