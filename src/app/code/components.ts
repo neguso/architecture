@@ -37,7 +37,7 @@ export class StaticImageViewItemComponent
 
 @Component({
   selector: 'actions-container',
-  template: '<div><button mat-raised-button>Text</button></div>'
+  template: '<div> {{ActionContainerItem?.Actions.length}} <button (click)="ActionContainerItem?.Actions[0].DoExecute()" mat-raised-button>Text</button></div>'
 })
 export class ActionsContainerViewItemComponent
 {

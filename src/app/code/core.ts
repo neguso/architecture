@@ -47,8 +47,11 @@ export class Application
   }
 
   //TODO move this into a system module
-  public CreateDetailView(viewId: string): DetailView
+  public CreateDetailView(viewId: string): DetailView | null
   {
+    if(typeof this.Model.Views[viewId] === 'undefined')
+      return null;
+
     const model = this.Model.Views[viewId] as ModelDetailView;
     const view = new DetailView(viewId, model.ObjectType, null, this.Model);
 
@@ -229,7 +232,7 @@ export class ModelDataModelMember implements IModelNode, IModelDataModelMember
   public Type: Type<any> = String;
   public Caption: string;
   public ToolTip: string = '';
-  public AllowNull: boolean = true;
+  public AllowNull: boolean = false;
   public NullText: string = '';
   public MaxLength: number = 50;
 
@@ -284,7 +287,6 @@ export abstract class ModelView implements IModelNode
   }
 }
 
-
 export abstract class ModelViewField implements IModelNode
 {
   // IModelNode
@@ -319,16 +321,15 @@ export abstract class ModelViewField implements IModelNode
 
 
 
-export interface IDashboardView
+export interface IModelDashboardView
 {
   Index?: number;
   Caption?: string | null;
 }
 
-
-export class ModelDashboardView extends ModelView implements IDashboardView
+export class ModelDashboardView extends ModelView implements IModelDashboardView
 {
-  constructor(parent: IModelNode, id: string, type: Type<IBaseObject>, init?: IDashboardView)
+  constructor(parent: IModelNode, id: string, type: Type<IBaseObject>, init?: IModelDashboardView)
   {
     super(parent, id, type);
 
@@ -340,13 +341,14 @@ export class ModelDashboardView extends ModelView implements IDashboardView
   }
 }
 
-export interface IDashboardViewItem
+
+export interface IModelDashboardViewItem
 {
   Index?: number;
   Caption?: string | null;
 }
 
-export class ModelDashboardViewItem implements IModelNode, IDashboardViewItem
+export class ModelDashboardViewItem implements IModelNode, IModelDashboardViewItem
 {
   // IModelNode
   public Index: number = 0;
@@ -764,10 +766,15 @@ export class ComponentBase implements IComponent
   }
 
 
-  public SetView(view: View): void
+  public SetView(view: View | null): void
   {
+    // deactivate existing view controllers
     if(this.View !== null)
       ControllerManager.SetView(null, this);
+
+    this.View = view;
+
+    // activate new view controllers
     ControllerManager.SetView(view, this);
   }
 
@@ -822,7 +829,6 @@ export abstract class ActionBase
   {
     this.Id = id;
     this.Controller = controller;
-    this.Controller.Actions.push(this);
   }
 
 
@@ -1143,16 +1149,45 @@ export class ViewController extends ComponentController
     return this.TargetViews.length === 0 || this.TargetViews.includes(view.Id);
   }
 
-
-  public SetView(view: View): void
+  protected AddActions(view: View, actions: Array<ActionBase>): void
   {
+    view.Actions.push(...actions);
+  }
+
+  protected RemoveActions(view: View, actions: Array<ActionBase>): void
+  {
+    actions.forEach(action => view.Actions.splice(view.Actions.findIndex(va => va === action), 1));
+  }
+
+
+  public SetView(view: View | null): void
+  {
+    if(view === null)
+    {
+      // remove controller actions from view
+      if(this.View !== null)
+        this.RemoveActions(this.View, this.Actions);
+
+      this.Active.SetItemValue('View Assigned', false);
+      this.View = null;
+
+      return;
+    }
+
     if(this.Match(view))
     {
       // assign view and activate
       this.View = view;
       this.Active.SetItemValue('View Assigned', true);
+
+      // add controller actions to view
+      this.AddActions(this.View, this.Actions);
     }
   }
+
+
+
+
 }
 
 
@@ -1363,7 +1398,9 @@ export class ControllerManager
 
   public static SetView(view: View | null, component: IComponent): void
   {
-    throw new Error('Method not implemented.');
+    this.GetControllers(component).filter(e => e instanceof ViewController).forEach(controller => {
+      (controller as ViewController).SetView(view);
+    });
   }
 }
 
@@ -1606,6 +1643,7 @@ export abstract class View
 {
   public Id: string;
   public readonly Model: ModelView;
+  public readonly Actions: Array<ActionBase> = [];
 
 
   constructor(id: string, application: ModelApplication)
@@ -1618,7 +1656,6 @@ export abstract class View
 
 export abstract class CompositeView extends View
 {
-  public readonly Model!: ModelDetailView;
   public Items: IDictionary<ViewItem> = {};
 
 
@@ -1694,12 +1731,6 @@ export abstract class ViewItem
     this.Id = id;
     this.View = view;
   }
-
-
-  public get Model(): ModelDetailViewItem | undefined
-  {
-    return this.View.Model.Items[this.Id];
-  }
 }
 
 
@@ -1711,6 +1742,11 @@ export class StaticTextViewItem extends ViewItem
     super(id, view);
   }
 
+
+  public get Model(): ModelDetailViewItem | undefined
+  {
+    return (this.View.Model as ModelDetailView).Items[this.Id];
+  }
 
   private caption: string | null = null;
   public get Caption(): string
@@ -1740,6 +1776,11 @@ export class StaticImageViewItem extends ViewItem
   }
 
 
+  public get Model(): ModelDetailViewItem | undefined
+  {
+    return (this.View.Model as ModelDetailView).Items[this.Id];
+  }
+
   private caption: string | null = null;
   public get Caption(): string
   {
@@ -1748,12 +1789,14 @@ export class StaticImageViewItem extends ViewItem
     return this.caption;
   }
 
-  public get Url(): string
+  public get Url(): string | null
   {
     const object = (this.View as DetailView).CurrentObject;
     const field = this.Model?.Field ?? null;
     if(object === null || field === null)
-      return '';
+      return null;
+    if(!object.hasOwnProperty(field))
+      return null;
     return object[field].toString();
   }
 }
@@ -1768,6 +1811,27 @@ export class ActionsContainerViewItem extends ViewItem
   }
 
 
+  public get Model(): ModelDetailViewItem | undefined
+  {
+    return (this.View.Model as ModelDetailView).Items[this.Id];
+  }
+
+  private container: string | null = null;
+  public get Container(): string
+  {
+    if(this.container === null)
+      return (this.Model as ModelActionContainerItem)?.Container ?? '';
+    return this.container;
+  }
+
+  //TODO
+  //public DisplayStyle: ActionsDisplayStyle;
+  //public Orientation: ActionsOrientation;
+
+  public get Actions(): Array<ActionBase>
+  {
+    return this.View.Actions;
+  }
 
 }
 

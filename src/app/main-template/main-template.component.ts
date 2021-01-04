@@ -12,8 +12,8 @@ import { Application, ComponentBase, DetailView } from '../code/core';
 export class MainTemplateComponent extends ComponentBase implements OnInit
 {
   private application: Application;
+  private route: ActivatedRoute;
 
-  public Route: ActivatedRoute;
   public View: DetailView | null = null;
 
 
@@ -22,17 +22,19 @@ export class MainTemplateComponent extends ComponentBase implements OnInit
     super();
 
     this.application = application;
-    this.Route = route;
+    this.route = route;
   }
 
 
   public ngOnInit(): void
   {
-    this.Route.queryParams.subscribe(params => {
-      console.log(`Component view parameter = ${params['view']}`);
+    this.route.queryParams.subscribe(params => {
+      console.log(`Component view = ${params['view']}`);
+
+      this.SetView(this.application.CreateDetailView(params['view']));
 
       // params[view]
-      this.View = this.application.CreateDetailView('About_DetailView');
+      //this.View = this.application.CreateDetailView('About_DetailView');
     });
   }
 }

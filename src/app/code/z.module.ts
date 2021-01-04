@@ -8,7 +8,7 @@ import { MainTemplateComponent } from '../main-template/main-template.component'
 
 
 /**
- * Module to create a simple web app with a dashboard, list views and detail views.
+ * Module to create a simple test app with all kind of views.
  */
 @NgModule({
   declarations: [],
@@ -33,7 +33,9 @@ export class ZModule
 
   public UpdateApplicationModel(model: ModelApplication): void
   {
-    // data models
+    // data models //
+
+    // About
     model.RegisterDataModel(About, { });
     model.RegisterDataModelMembers(About, {
       Title: { },
@@ -41,15 +43,34 @@ export class ZModule
       Logo: { }
     });
 
-    // view models (it can be guessed from model)
-    model.RegisterDetailView('About_DetailView', About);
-    model.RegisterStaticTextItem('About_DetailView', 'Title', { Caption: 'The Title' });
-    model.RegisterStaticTextItem('About_DetailView', 'Description');
-    model.RegisterStaticImageItem('About_DetailView', 'Logo');
-    model.RegisterActionsContainerItem('About_DetailView', 'about-actions');
+    // Customer
+    model.RegisterDataModel(Customer, { });
+    model.RegisterDataModelMembers(Customer, {
+      Name: { },
+      Address: { MaxLength: 100, AllowNull: true },
+      NoOfEmployees: { Type: Number },
+      Limited: { Type: Boolean },
+      Created: { Type: Date }
+    });
+
+    // Views, Actions //
+
+    const about = 'About_DetailView';
+    model.RegisterDetailView(about, About);
+    model.RegisterStaticTextItem(about, 'Title', { Caption: 'The Title' });
+    model.RegisterStaticTextItem(about, 'Description');
+    model.RegisterStaticImageItem(about, 'Logo');
+    model.RegisterActionsContainerItem(about, 'about-actions');
 
     // actions models are optional
     model.Actions['hello'] = new ModelAction(model, 'hello', { Caption: 'Say Hello' });
+
+    const customers = 'Customers_ListView';
+    //TODO
+
+
+    const customer = 'Customer_DetailView';
+    //TODO
 
   }
 }
@@ -74,6 +95,27 @@ export class About extends BaseObject
   }
 }
 
+export class Customer extends BaseObject
+{
+  public Name: string;
+  public Address: string | null;
+  public NoOfEmployees: number = 0;
+  public Limited: boolean = false;
+  public Created: Date;
+
+  constructor(name: string, address: string | null, empl: number, ltd: boolean, created: Date)
+  {
+    super();
+
+    this.Name = name;
+    this.Address = address;
+    this.NoOfEmployees = empl;
+    this.Limited = ltd;
+    this.Created = created;
+  }
+}
+
+
 
 export class AboutDataStore extends ArrayStore<About>
 {
@@ -86,7 +128,7 @@ export class AboutDataStore extends ArrayStore<About>
 
 
 @Injectable()
-//@Controller(MainTemplateComponent)
+@Controller(MainTemplateComponent)
 export class MainController extends ComponentController
 {
   constructor(component: MainTemplateComponent, application: ModelApplication)
@@ -115,36 +157,40 @@ export class MainController extends ComponentController
 
 
 @Injectable()
-//@Controller(MainTemplateComponent)
+@Controller(MainTemplateComponent)
 export class AboutViewController extends ViewController
 {
-  private HelloAction: SimpleAction;
+  public HelloAction: SimpleAction;
 
 
   constructor(component: MainTemplateComponent, application: ModelApplication)
   {
     super(component, application);
 
-    // this controller activates only for components that uses the specified views
-    this.TargetViews.push('About_DetailView');
-
     this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created`); });
     this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
     this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
+    this.Name = 'AboutViewController';
+
+    // controller activates only for components that uses the specified views
+    this.TargetViews.push('About_DetailView');
+
     this.Created.Subscribe(() => this.OnCreated());
     this.Activated.Subscribe(() => this.OnActivated());
+    this.Deactivated.Subscribe(() => this.OnDeactivated());
 
 
     // create Hello action
     this.HelloAction = new SimpleAction('hello', this);
     this.HelloAction.Container = 'about-actions';
     this.HelloAction.Execute.Subscribe(() => { console.log('HelloAction executed'); });
-
+    //
     this.Actions.push(this.HelloAction);
   }
 
-  public OnCreated(): void
+
+  protected OnCreated(): void
   {
     // controller created, all controllers for component are accessible
 
@@ -153,7 +199,14 @@ export class AboutViewController extends ViewController
     const about = ControllerManager.GetController(this.Component, AboutViewController);
   }
 
-  public OnActivated(): void
+  protected OnActivated(): void
+  {
+    // component view assigned to controller
+
+    const view = this.View;
+  }
+
+  protected OnDeactivated(): void
   {
     // component view assigned to controller
 

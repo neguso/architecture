@@ -1,23 +1,36 @@
-<div>
-  header container
-
-  <static-image [item]="View!.Items['Logo']"></static-image>
-  <static-text [item]="View!.Items['Title']"></static-text>
-  <static-text [item]="View!.Items['Description']"></static-text>
-
-  <actions-container [item]="View!.Items['about-actions']"></actions-container>
+<div *ngIf="View === null; else view">
+  <p>View not assigned.</p>
+  <a [routerLink]="''" [queryParams]="{ view: 'About_DetailView' }">About_DetailView</a>
 </div>
 
-<div>
-  navigation container
-</div>
+<ng-template #view>
 
-<div>
-  <router-outlet>content</router-outlet>
-</div>
+  <div>
+    <h1>About Items</h1>
 
-<div>
-  footer container
-</div>
+    <static-image [item]="View!.Items['Logo']"></static-image>
+    <static-text [item]="View!.Items['Title']"></static-text>
+    <static-text [item]="View!.Items['Description']"></static-text>
 
-<a [routerLink]="''" [queryParams]="{ view: 'About_DetailView' }">About_DetailView</a>
+    <h2>Action Container as View Item</h2>
+    <actions-container [item]="View!.Items['about-actions']"></actions-container>
+
+    <h2>Action Container in Template</h2>
+    <actions-container [item]="View!.Items['about-actions']"></actions-container>
+  </div>
+
+  <div>
+    navigation container
+  </div>
+
+  <div>
+    <router-outlet>content</router-outlet>
+  </div>
+
+  <div>
+    footer container
+  </div>
+
+</ng-template>
+
+
