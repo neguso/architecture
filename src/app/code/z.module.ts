@@ -63,10 +63,12 @@ export class ZModule
     model.RegisterActionsContainerItem(about, 'about-actions');
 
     // actions models are optional
-    model.Actions['hello'] = new ModelAction(model, 'hello', { Caption: 'Say Hello' });
+    model.Actions['hello'] = new ModelAction(model, 'hello', { Caption: 'Say Hello', Container: 'about-actions' });
+    model.Actions['bye'] = new ModelAction(model, 'byw', { Caption: 'Say Bye Bye', Container: 'about-actions' });
 
     const customers = 'Customers_ListView';
-    //TODO
+    model.RegisterListView(customers, Customer);
+    //model.RegisterListViewColumns();
 
 
     const customer = 'Customer_DetailView';
@@ -161,6 +163,7 @@ export class MainController extends ComponentController
 export class AboutViewController extends ViewController
 {
   public HelloAction: SimpleAction;
+  public ByeAction: SimpleAction;
 
 
   constructor(component: MainTemplateComponent, application: ModelApplication)
@@ -184,9 +187,16 @@ export class AboutViewController extends ViewController
     // create Hello action
     this.HelloAction = new SimpleAction('hello', this);
     this.HelloAction.Container = 'about-actions';
-    this.HelloAction.Execute.Subscribe(() => { console.log('HelloAction executed'); });
+    this.HelloAction.Execute.Subscribe(() => { console.log('Hello!'); });
     //
     this.Actions.push(this.HelloAction);
+
+    // create Bye action
+    this.ByeAction = new SimpleAction('bye', this);
+    this.ByeAction.Container = 'about-actions';
+    this.ByeAction.Execute.Subscribe(() => { console.log('Bye Bye!'); });
+    //
+    this.Actions.push(this.ByeAction);
   }
 
 

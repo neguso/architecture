@@ -32,9 +32,6 @@ export class MainTemplateComponent extends ComponentBase implements OnInit
       console.log(`Component view = ${params['view']}`);
 
       this.SetView(this.application.CreateDetailView(params['view']));
-
-      // params[view]
-      //this.View = this.application.CreateDetailView('About_DetailView');
     });
   }
 }

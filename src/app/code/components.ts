@@ -1,17 +1,17 @@
 import { Component, Input } from '@angular/core';
 
-import { ActionsContainerViewItem, StaticImageViewItem, StaticTextViewItem, ViewItem } from './core';
+import { ActionBase, ActionsContainerViewItem, StaticImageViewItem, StaticTextViewItem, ViewItem } from './core';
 
 
 @Component({
   selector: 'static-text',
-  template: `<div>{{StaticTextItem?.Caption}}: {{StaticTextItem?.Text}}</div>`
+  template: '<div *ngIf="StaticTextItem">{{StaticTextItem?.Caption}}: {{StaticTextItem?.Text}}</div>'
 })
 export class StaticTextViewItemComponent
 {
-  @Input('item') public Item: ViewItem | null = null;
+  @Input('item') public Item: ViewItem | undefined = undefined;
 
-  public get StaticTextItem(): StaticTextViewItem | null
+  public get StaticTextItem(): StaticTextViewItem | undefined
   {
     return this.Item as StaticTextViewItem;
   }
@@ -25,9 +25,9 @@ export class StaticTextViewItemComponent
 })
 export class StaticImageViewItemComponent
 {
-  @Input('item') public Item: ViewItem | null = null;
+  @Input('item') public Item: ViewItem | undefined = undefined;
 
-  public get StaticImageItem(): StaticImageViewItem | null
+  public get StaticImageItem(): StaticImageViewItem | undefined
   {
     return this.Item as StaticImageViewItem;
   }
@@ -37,14 +37,22 @@ export class StaticImageViewItemComponent
 
 @Component({
   selector: 'actions-container',
-  template: '<div> {{ActionContainerItem?.Actions.length}} <button (click)="ActionContainerItem?.Actions[0].DoExecute()" mat-raised-button>Text</button></div>'
+  template: '<div><button *ngFor="let action of Actions" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div>'
 })
 export class ActionsContainerViewItemComponent
 {
-  @Input('item') public Item: ViewItem | null = null;
+  @Input('item') public Item: ViewItem | undefined;
+  @Input('actions') public ActionsList: Array<ActionBase> | undefined;
+  @Input('container') public Container: string | undefined;
 
-  public get ActionContainerItem(): ActionsContainerViewItem | null
+
+  public get ActionContainerItem(): ActionsContainerViewItem | undefined
   {
     return this.Item as ActionsContainerViewItem;
+  }
+
+  public get Actions(): Array<ActionBase>
+  {
+    return this.ActionContainerItem?.Actions.filter(e => e.Container === this.ActionContainerItem?.Container) ?? this.ActionsList?.filter(e => e.Container === this.Container) ?? [];
   }
 }

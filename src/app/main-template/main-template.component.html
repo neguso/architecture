@@ -16,7 +16,7 @@
     <actions-container [item]="View!.Items['about-actions']"></actions-container>
 
     <h2>Action Container in Template</h2>
-    <actions-container [item]="View!.Items['about-actions']"></actions-container>
+    <actions-container [actions]="View!.Actions" container="about-actions"></actions-container>
   </div>
 
   <div>
@@ -31,6 +31,7 @@
     footer container
   </div>
 
+  <a [routerLink]="''" [queryParams]="{ view: 'About_DetailViewX' }">About_DetailViewX</a>
 </ng-template>
 
 

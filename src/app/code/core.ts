@@ -1,4 +1,5 @@
 import { Injectable, Injector, Type } from '@angular/core';
+import { until } from 'protractor';
 
 
 interface IDictionary<T>
@@ -110,11 +111,14 @@ export class ModelApplication implements IModelNode
   public readonly DataModels: IDictionary<ModelDataModel> = {};
   public readonly Views: IDictionary<ModelView> = {};
   public readonly Actions: IDictionary<ModelAction> = {};
+  public readonly Navigation: ModelNavigation;
+
 
 
   public constructor()
   {
     this.Options = new ModelApplicationOptions();
+    this.Navigation = new ModelNavigation(this);
   }
 
 
@@ -129,17 +133,6 @@ export class ModelApplication implements IModelNode
   {
     for(const member of Object.keys(members))
       this.DataModels[type.name].Members[member] = new ModelDataModelMember(this.DataModels[type.name], member, members[member]);
-  }
-
-  public RegisterListView(name: string, type: Type<IBaseObject>, node: IModelListView): void
-  {
-    this.Views[name] = new ModelListView(this, name, type, node);
-  }
-
-  public RegisterListViewColumns(name: string, columns: IDictionary<IModelListViewColumn>): void
-  {
-    for(const column of Object.keys(columns))
-      (this.Views[name] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[name], column, columns[column]);
   }
 
   public RegisterDetailView(name: string, type: Type<IBaseObject>, init?: IModelDetailView): void
@@ -161,6 +154,19 @@ export class ModelApplication implements IModelNode
   {
     (this.Views[name] as ModelDetailView).Items[container] = new ModelActionContainerItem(this.Views[name], container, init);
   }
+
+  public RegisterListView(name: string, type: Type<IBaseObject>, init?: IModelListView): void
+  {
+    this.Views[name] = new ModelListView(this, name, type, init);
+  }
+
+  public RegisterListViewColumns(name: string, columns: IDictionary<IModelListViewColumn>): void
+  {
+    for(const column of Object.keys(columns))
+      (this.Views[name] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[name], column, columns[column]);
+  }
+
+
 
   public RegisterAction(name: string, init?: IModelAction): void
   {
@@ -595,6 +601,67 @@ export class ModelActionContainerItem extends ModelDetailViewItem implements IMo
   }
 }
 
+
+
+
+export enum NavigationStyle
+{
+  Tree, List, Accordion
+}
+
+
+export class ModelNavigation implements IModelNode
+{
+  // IModelNode
+  public Index: number = 0;
+  public readonly Parent: IModelNode;
+
+  public NavigationStyle: NavigationStyle = NavigationStyle.List;
+  public DefaultNodeImage: string = 'image';
+  public DefaultLeafImage: string = 'image';
+  public StartNavigationItem: ModelNavigationItem | null = null;
+  public readonly Items: Array<ModelNavigationItem> = [];
+
+
+  constructor(parent: IModelNode)
+  {
+    this.Parent = parent;
+  }
+}
+
+
+export class ModelNavigationItem implements IModelNode
+{
+  // IModelNode
+  public Index: number = 0;
+  public readonly Parent: IModelNode;
+
+  public View: string = '';
+  public readonly Items: Array<ModelNavigationItem> = [];
+
+
+  constructor(parent: IModelNode)
+  {
+    this.Parent = parent;
+  }
+
+  private image: string | null = null;
+  public get Image(): string
+  {
+    return this.image ?? this.Parent
+  }
+
+
+  protected Root(): ModelNavigation
+  {
+    let node = this;
+    while(node.Parent !== null)
+    {
+      node = node.Parent;
+    }
+    return node;
+  }
+}
 
 
 //#endregion

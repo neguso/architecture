@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
 import { Application } from './core';
@@ -11,7 +12,7 @@ import { DetailViewController } from './controllers';
   providers: [DetailViewController],
   declarations: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent],
   exports: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent],
-  imports: [MatButtonModule]
+  imports: [CommonModule, MatButtonModule]
 })
 export class AppFrameworkModule
 {
