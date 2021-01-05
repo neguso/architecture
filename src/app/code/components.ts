@@ -56,3 +56,21 @@ export class ActionsContainerViewItemComponent
     return this.ActionContainerItem?.Actions.filter(e => e.Container === this.ActionContainerItem?.Container) ?? this.ActionsList?.filter(e => e.Container === this.Container) ?? [];
   }
 }
+
+
+
+@Component({
+  selector: 'actions-container-navigation',
+  template: '<div><button *ngFor="let action of Actions" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div>'
+})
+export class ActionsContainerNavigationComponent
+{
+  @Input('actions') public ActionsList: Array<ActionBase> | undefined;
+  @Input('container') public Container: string | undefined;
+
+
+  public get Actions(): Array<ActionBase>
+  {
+    return this.ActionsList?.filter(e => e.Container === this.Container) ?? [];
+  }
+}

@@ -6,7 +6,7 @@ import { MainTemplateComponent } from './main-template/main-template.component';
 
 
 const routes: Routes = [
-  { path: '', component: MainTemplateComponent, data: { view: 'main-view' } },
+  { path: '', component: MainTemplateComponent, data: { view: 'About_DetailView' } },
   { path: 'books', component: BooksComponent }
 ];
 

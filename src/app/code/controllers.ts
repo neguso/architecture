@@ -5,7 +5,7 @@ import { Controller, ComponentController, ModelApplication, ComponentBase, ViewC
 import { MainTemplateComponent } from '../main-template/main-template.component';
 
 
-
+//TEST
 @Injectable()
 @Controller(ComponentBase)
 export class ComponentLifecycleController extends ComponentController
@@ -21,7 +21,7 @@ export class ComponentLifecycleController extends ComponentController
 }
 
 
-
+//TEST
 @Injectable()
 @Controller(MainTemplateComponent)
 export class DetailViewController extends ViewController
@@ -35,3 +35,6 @@ export class DetailViewController extends ViewController
     this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
   }
 }
+
+
+

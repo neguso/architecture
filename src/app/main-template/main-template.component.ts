@@ -28,6 +28,12 @@ export class MainTemplateComponent extends ComponentBase implements OnInit
 
   public ngOnInit(): void
   {
+    // this.route.data.subscribe(data => {
+    //    console.log(`Component view = ${data['view']}`);
+
+    //    this.SetView(this.application.CreateDetailView(data['view']));
+    // });
+
     this.route.queryParams.subscribe(params => {
       console.log(`Component view = ${params['view']}`);
 

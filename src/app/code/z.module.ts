@@ -74,6 +74,17 @@ export class ZModule
     const customer = 'Customer_DetailView';
     //TODO
 
+
+    // Navigation //
+
+    model.RegisterNavigationItems(model.Navigation, [{ id: 'Main' }]);
+    const navMain = model.Navigation.Items.find(e => e.Id === 'Main');
+    if(typeof navMain !== 'undefined')
+      model.RegisterNavigationItems(navMain, [
+      { id: 'About', item: { View: 'About_DetailView' } },
+      { id: 'Customers', item: { View: 'Customers_ListView' } }
+    ]);
+
   }
 }
 
@@ -221,5 +232,25 @@ export class AboutViewController extends ViewController
     // component view assigned to controller
 
     const view = this.View;
+  }
+}
+
+
+
+
+//TODO restructureaza modulele, restructureaza components&views ca in draw.io
+//TODO read model navigation items and create actions for each item in container 'main-navigation'
+@Injectable()
+@Controller(MainTemplateComponent)
+export class ShowNavigationItemController extends ViewController
+{
+  constructor(component: MainTemplateComponent, application: ModelApplication)
+  {
+    super(component, application);
+
+    this.TargetViews.push('Main');
+
+    //application.Navigation
+    //..............
   }
 }

@@ -166,11 +166,14 @@ export class ModelApplication implements IModelNode
       (this.Views[name] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[name], column, columns[column]);
   }
 
-
-
   public RegisterAction(name: string, init?: IModelAction): void
   {
 
+  }
+
+  public RegisterNavigationItems(parent: ModelNavigation | ModelNavigationItem, items: Array<{ id: string, item?: IModelNavigationItem }>): void
+  {
+    parent.Items.push(...items.map(e => new ModelNavigationItem(this.Navigation, e.id, e.item)));
   }
 
   // public RegisterDetailViewItems(name: string, items: IDictionary<IModelDetailViewItem>): void
@@ -630,36 +633,60 @@ export class ModelNavigation implements IModelNode
 }
 
 
+export interface IModelNavigationItem
+{
+  Index?: number;
+  View?: string;
+  ObjectKey?: string;
+  Caption?: string;
+  ToolTip?: string;
+  Visible?: boolean;
+}
+
+
 export class ModelNavigationItem implements IModelNode
 {
   // IModelNode
   public Index: number = 0;
   public readonly Parent: IModelNode;
 
+  public Id: string;
   public View: string = '';
+  public ObjectKey: string | null = null;
+  public Caption: string;
+  public ToolTip: string = '';
+  public Visible: boolean = true;
   public readonly Items: Array<ModelNavigationItem> = [];
 
 
-  constructor(parent: IModelNode)
+  constructor(parent: IModelNode, id: string, init?: IModelNavigationItem)
   {
     this.Parent = parent;
+    this.Id = id;
+
+    // set default values
+    this.Caption = this.Id;
+
+    // set user provided values
+    Object.assign(this, init);
   }
 
-  private image: string | null = null;
-  public get Image(): string
-  {
-    return this.image ?? this.Parent
-  }
 
-
-  protected Root(): ModelNavigation
+  protected get Root(): ModelNavigation
   {
-    let node = this;
+    let node = this.Parent;
     while(node.Parent !== null)
     {
       node = node.Parent;
     }
-    return node;
+    return node as ModelNavigation;
+  }
+
+
+  private image: string | null = null;
+  public get Image(): string
+  {
+    return this.image ?? (this.Items.length === 0 ? this.Root.DefaultLeafImage : this.Root.DefaultNodeImage);
   }
 }
 
