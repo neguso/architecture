@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ComponentBase } from '../code/core';
+import { ComponentBase } from '../../magenta/core';
 
 @Component({
   selector: 'app-books',

@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { Application, ComponentBase, DetailView } from '../code/core';
+import { ComponentBase, DetailView } from '../../magenta/core';
+
+import { MyApplication } from 'src/code/myapp/application';
 
 
 @Component({
@@ -11,13 +13,13 @@ import { Application, ComponentBase, DetailView } from '../code/core';
 })
 export class MainTemplateComponent extends ComponentBase implements OnInit
 {
-  private application: Application;
+  private application: MyApplication;
   private route: ActivatedRoute;
 
   public View: DetailView | null = null;
 
 
-  constructor(application: Application, route: ActivatedRoute)
+  constructor(application: MyApplication, route: ActivatedRoute)
   {
     super();
 

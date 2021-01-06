@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
-import { AppFrameworkModule } from './app-framework.module';
-import { IBaseObject, ModelApplication } from './core';
-import { Book, XModule } from './x.module';
+import { CoreModule } from '../magenta/core/core.module';
+import { IBaseObject, ModelApplication } from '../magenta/core';
+import { Book, Test1Module } from './test1.module';
 
 
 @NgModule({
   declarations: [],
-  imports: [AppFrameworkModule, XModule]
+  imports: [CoreModule, Test1Module]
 })
-export class YModule
+export class Test2Module
 {
   constructor(model: ModelApplication)
   {

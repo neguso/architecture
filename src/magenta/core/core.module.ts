@@ -1,25 +1,28 @@
-import { NgModule } from '@angular/core';
+import { Injector, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
-import { Application } from './core';
-
-import { StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent, ActionsContainerNavigationComponent } from './components';
-import { DetailViewController } from './controllers';
+import { ControllerManager } from './core';
+import {
+  StaticTextViewItemComponent,
+  StaticImageViewItemComponent,
+  ActionsContainerViewItemComponent,
+  ActionsContainerNavigationComponent
+} from './components';
 
 
 @NgModule({
-  providers: [DetailViewController],
+  providers: [],
   declarations: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent, ActionsContainerNavigationComponent],
   exports: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent, ActionsContainerNavigationComponent],
   imports: [CommonModule, MatButtonModule]
 })
-export class AppFrameworkModule
+export class CoreModule
 {
-  public constructor(application: Application)
+  public constructor(injector: Injector)
   {
     console.log(`Module ${this.constructor.name} created`);
 
-    application.Setup();
+    ControllerManager.RegisterInjector(injector);
   }
 }

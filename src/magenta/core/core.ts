@@ -1,31 +1,7 @@
 import { Injectable, Injector, Type } from '@angular/core';
-import { until } from 'protractor';
 
-
-interface IDictionary<T>
-{
-  [key: string]: T;
-}
-
-
-
-export interface IBaseObject
-{
-  Id: string;
-  [key: string]: any;
-}
-
-export abstract class BaseObject implements IBaseObject
-{
-  public Id: string;
-
-
-  public constructor(id: string = '')
-  {
-    this.Id = id;
-  }
-}
-
+import { IDictionary } from './common';
+import { IBaseObject, BaseObject } from './data';
 
 
 @Injectable({ providedIn: 'root' })
@@ -34,11 +10,11 @@ export class Application
   public readonly Model: ModelApplication;
 
 
-  constructor(model: ModelApplication, injector: Injector)
+  constructor(model: ModelApplication)
   {
     this.Model = model;
 
-    ControllerManager.RegisterInjector(injector);
+
   }
 
 
@@ -928,7 +904,7 @@ export abstract class ActionBase
 
   public get Application(): ModelApplication
   {
-    return this.Controller.Application;
+    return this.Controller.Model;
   }
 
   public get Model(): ModelAction | null
@@ -1175,7 +1151,7 @@ export interface IController
 {
   Name: string;
   Component: IComponent;
-  Application: ModelApplication;
+  Model: ModelApplication;
   Actions: Array<ActionBase>;
   Active: BoolList;
   Created: Event<EventArgs>;
@@ -1188,7 +1164,7 @@ export abstract class ComponentController implements IController
 {
   public Name: string = '';
   public Component: IComponent;
-  public Application: ModelApplication;
+  public Model: ModelApplication;
   public readonly Actions: Array<ActionBase> = [];
   public readonly Active: BoolList = new BoolList();
   public readonly Created: Event<EventArgs> = new Event<EventArgs>();
@@ -1196,10 +1172,10 @@ export abstract class ComponentController implements IController
   public readonly Deactivated: Event<EventArgs> = new Event<EventArgs>();
 
 
-  constructor(component: IComponent, application: ModelApplication)
+  constructor(component: IComponent, model: ModelApplication)
   {
     this.Component = component;
-    this.Application = application;
+    this.Model = model;
 
     this.Initialize();
 
@@ -1226,9 +1202,9 @@ export class ViewController extends ComponentController
   public readonly TargetViews: Array<string> = [];
 
 
-  constructor(component: IComponent, application: ModelApplication)
+  constructor(component: IComponent, model: ModelApplication)
   {
-    super(component, application);
+    super(component, model);
   }
 
 
@@ -1740,10 +1716,10 @@ export abstract class View
   public readonly Actions: Array<ActionBase> = [];
 
 
-  constructor(id: string, application: ModelApplication)
+  constructor(id: string, model: ModelApplication)
   {
     this.Id = id;
-    this.Model = application.Views[this.Id];
+    this.Model = model.Views[this.Id];
   }
 }
 
@@ -1753,9 +1729,9 @@ export abstract class CompositeView extends View
   public Items: IDictionary<ViewItem> = {};
 
 
-  constructor(id: string, application: ModelApplication)
+  constructor(id: string, model: ModelApplication)
   {
-    super(id, application);
+    super(id, model);
   }
 }
 
@@ -1765,9 +1741,9 @@ export abstract class ObjectView extends CompositeView
   public readonly Type: Type<IBaseObject>;
 
 
-  constructor(id: string, type: Type<IBaseObject>, application: ModelApplication)
+  constructor(id: string, type: Type<IBaseObject>, model: ModelApplication)
   {
-    super(id, application);
+    super(id, model);
 
     this.Type = type;
   }
@@ -1785,9 +1761,9 @@ export class ListView extends ObjectView
   //TODO
 
 
-  constructor(id: string, type: Type<IBaseObject>, collectionSource: CollectionSource, application: ModelApplication)
+  constructor(id: string, type: Type<IBaseObject>, collectionSource: CollectionSource, model: ModelApplication)
   {
-    super(id, type, application);
+    super(id, type, model);
   }
 }
 
@@ -1798,9 +1774,9 @@ export class DetailView extends ObjectView
   public Mode: ViewEditMode = ViewEditMode.View;
 
 
-  constructor(id: string, type: Type<IBaseObject>, object: IBaseObject | null, application: ModelApplication)
+  constructor(id: string, type: Type<IBaseObject>, object: IBaseObject | null, model: ModelApplication)
   {
-    super(id, type, application);
+    super(id, type, model);
 
     this.CurrentObject = object;
   }
@@ -1939,11 +1915,12 @@ export class CollectionSource
   public readonly Model: ModelDataModel;
 
 
-  constructor(type: Type<IBaseObject>, application: ModelApplication)
+  constructor(type: Type<IBaseObject>, model: ModelApplication)
   {
     this.Type = type;
-    this.Model = application.DataModels[type.name];
+    this.Model = model.DataModels[type.name];
   }
 }
 
 //#endregion
+

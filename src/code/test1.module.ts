@@ -15,17 +15,17 @@ import {
   StateManager,
   BoolList,
   EventArgs
-} from './core';
-import { HomeComponent } from '../home/home.component';
-import { BooksComponent } from '../books/books.component';
-import { AppFrameworkModule } from './app-framework.module';
+} from '../magenta/core';
+import { HomeComponent } from '../app/home/home.component';
+import { BooksComponent } from '../app/books/books.component';
+import { CoreModule } from '../magenta/core/core.module';
 
 
 @NgModule({
   declarations: [],
-  imports: [AppFrameworkModule]
+  imports: [CoreModule]
 })
-export class XModule
+export class Test1Module
 {
   constructor(model: ModelApplication)
   {
@@ -637,6 +637,7 @@ class OneController extends ComponentController
     super(component, model);
 
     this.Created.Subscribe(() => {
+      // tslint:disable-next-line: max-line-length
       console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`);
     });
     this.Activated.Subscribe(() => {
@@ -663,7 +664,7 @@ class ThreeController implements IController
 {
   public Name: string = '';
   public Component: IComponent;
-  public Application: ModelApplication;
+  public Model: ModelApplication;
   public readonly Active: BoolList = new BoolList();
   public readonly Actions: Array<ActionBase> = [];
   public readonly Created: Event<EventArgs> = new Event<EventArgs>();
@@ -674,9 +675,10 @@ class ThreeController implements IController
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
   {
     this.Component = component;
-    this.Application = model;
+    this.Model = model;
 
     this.Created.Subscribe(() => {
+      // tslint:disable-next-line: max-line-length
       console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`);
 
       // non-declarative controller registration
@@ -693,6 +695,7 @@ class FourController extends ComponentController
     super(component, model);
 
     this.Created.Subscribe(() => {
+      // tslint:disable-next-line: max-line-length
       console.log(`${this.constructor.name} controller created for ${component.constructor.name}, there are ${ControllerManager.GetControllers(component).length} controllers registered for component`);
     });
   }

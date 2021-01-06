@@ -7,7 +7,7 @@ import {
   ModelApplication,
   StateManager,
   View
-} from '../code/core';
+} from '../../magenta/core';
 
 
 @Component({
