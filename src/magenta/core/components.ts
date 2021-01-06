@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-import { ActionBase, ActionsContainerViewItem, StaticImageViewItem, StaticTextViewItem, ViewItem } from './core';
+import { ActionBase, ActionsContainerViewItem, StaticImageViewItem, StaticTextViewItem, TreeNodeAction, ViewItem } from './core';
 
 
 @Component({
@@ -61,7 +61,7 @@ export class ActionsContainerViewItemComponent
 
 @Component({
   selector: 'actions-container-navigation',
-  template: '<div><button *ngFor="let action of Actions" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div>'
+  template: '<div><div *ngFor="let group of Actions">{{group.Caption}}<button *ngFor="let action of group.Items" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div></div>'
 })
 export class ActionsContainerNavigationComponent
 {
@@ -69,8 +69,8 @@ export class ActionsContainerNavigationComponent
   @Input('container') public Container: string | undefined;
 
 
-  public get Actions(): Array<ActionBase>
+  public get Actions(): Array<TreeNodeAction>
   {
-    return this.ActionsList?.filter(e => e.Container === this.Container) ?? [];
+    return this.ActionsList?.filter(e => e.Container === this.Container).map(e => e as TreeNodeAction) ?? [];
   }
 }

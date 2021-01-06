@@ -902,15 +902,10 @@ export abstract class ActionBase
   }
 
 
-  public get Application(): ModelApplication
-  {
-    return this.Controller.Model;
-  }
-
   public get Model(): ModelAction | null
   {
-    if(this.Application.Actions.hasOwnProperty(this.Id))
-      return this.Application.Actions[this.Id];
+    if(this.Controller.Model.Actions.hasOwnProperty(this.Id))
+      return this.Controller.Model.Actions[this.Id];
     return null;
   }
 
@@ -990,7 +985,18 @@ export class SimpleAction extends ActionBase
   {
     super(id, controller);
   }
+}
 
+
+export class TreeNodeAction extends ActionBase
+{
+  public readonly Items: Array<TreeNodeAction> = [];
+
+
+  constructor(id: string, controller: IController)
+  {
+    super(id, controller);
+  }
 }
 
 
@@ -1006,8 +1012,6 @@ export class ParametrizedAction extends ActionBase
 
     this.ValueType = valueType;
   }
-
-
 }
 
 

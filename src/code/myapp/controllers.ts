@@ -16,7 +16,6 @@ export class MainController extends ComponentController
     this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
     this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
-
     this.Created.Subscribe(() => this.OnCreated());
   }
 
@@ -27,7 +26,6 @@ export class MainController extends ComponentController
     const component = this.Component;
     const all = ControllerManager.GetControllers(this.Component);
     const about = ControllerManager.GetController(this.Component, AboutViewController);
-
   }
 
 }
@@ -96,25 +94,5 @@ export class AboutViewController extends ViewController
     // component view assigned to controller
 
     const view = this.View;
-  }
-}
-
-
-
-
-//TODO restructureaza components&views ca in draw.io
-//TODO read model navigation items and create actions for each item in container 'main-navigation'
-@Injectable()
-@Controller(MainTemplateComponent)
-export class ShowNavigationItemController extends ViewController
-{
-  constructor(component: MainTemplateComponent, model: ModelApplication)
-  {
-    super(component, model);
-
-    this.TargetViews.push('Main');
-
-    //application.Navigation
-    //..............
   }
 }

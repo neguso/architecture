@@ -6,7 +6,7 @@ import { ModelAction, ModelApplication } from '../../magenta/core';
 
 import { MyApplication } from './application';
 import { About, Customer } from './data';
-import { MainController } from './controllers';
+import { AboutViewController, MainController } from './controllers';
 
 
 /**
@@ -19,7 +19,7 @@ import { MainController } from './controllers';
     CoreModule
   ],
   providers: [
-    MainController
+    MainController, AboutViewController
   ]
 })
 export class MyAppModule
@@ -72,7 +72,7 @@ export class MyAppModule
     model.Actions['bye'] = new ModelAction(model, 'byw', { Caption: 'Say Bye Bye', Container: 'about-actions' });
 
     const customers = 'Customers_ListView';
-    model.RegisterListView(customers, Customer);
+    //model.RegisterListView(customers, Customer);
     //model.RegisterListViewColumns();
 
 
