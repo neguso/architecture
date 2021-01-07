@@ -61,7 +61,7 @@ export class ActionsContainerViewItemComponent
 
 @Component({
   selector: 'actions-container-navigation',
-  template: '<div><div *ngFor="let group of Actions">{{group.Caption}}<button *ngFor="let action of group.Items" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div></div>'
+  template: `<div><div *ngFor="let group of Actions">{{group.Caption}}<button *ngFor="let action of group.Items" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div></div>`
 })
 export class ActionsContainerNavigationComponent
 {

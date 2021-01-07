@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { Controller, ComponentController, ViewController, ModelApplication, ComponentBase, IComponent, ModelNavigationItem, TreeNodeAction } from '../core';
 
 
-//TODO read model navigation items and create actions for each item in container 'main-navigation'
 @Injectable()
 @Controller(ComponentBase)
 export class ShowNavigationItemController extends ViewController
@@ -23,9 +22,6 @@ export class ShowNavigationItemController extends ViewController
     this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
     //this.TargetViews.push('Main');
-
-    //application.Navigation
-    //..............
 
     this.Activated.Subscribe(() => this.OnActivated());
     this.Deactivated.Subscribe(() => this.OnDeactivated());
