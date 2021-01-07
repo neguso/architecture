@@ -111,40 +111,40 @@ export class ModelApplication implements IModelNode
       this.DataModels[type.name].Members[member] = new ModelDataModelMember(this.DataModels[type.name], member, members[member]);
   }
 
-  public RegisterDetailView(name: string, type: Type<IBaseObject>, init?: IModelDetailView): void
+  public RegisterDetailView(id: string, type: Type<IBaseObject>, init?: IModelDetailView): void
   {
-    this.Views[name] = new ModelDetailView(this, name, type, init);
+    this.Views[id] = new ModelDetailView(this, id, type, init);
   }
 
-  public RegisterStaticTextItem(name: string, field: string, init?: IModelStaticTextItem): void
+  public RegisterStaticTextItem(id: string, field: string, init?: IModelStaticTextItem): void
   {
-    (this.Views[name] as ModelDetailView).Items[field] = new ModelStaticTextItem(this.Views[name], field, init);
+    (this.Views[id] as ModelDetailView).Items[field] = new ModelStaticTextItem(this.Views[id], field, init);
   }
 
-  public RegisterStaticImageItem(name: string, field: string, init?: IModelStaticImageItem): void
+  public RegisterStaticImageItem(id: string, field: string, init?: IModelStaticImageItem): void
   {
-    (this.Views[name] as ModelDetailView).Items[field] = new ModelStaticImageItem(this.Views[name], field, init);
+    (this.Views[id] as ModelDetailView).Items[field] = new ModelStaticImageItem(this.Views[id], field, init);
   }
 
-  public RegisterActionsContainerItem(name: string, container: string, init?: IModelActionContainerItem): void
+  public RegisterActionsContainerItem(id: string, container: string, init?: IModelActionContainerItem): void
   {
-    (this.Views[name] as ModelDetailView).Items[container] = new ModelActionContainerItem(this.Views[name], container, init);
+    (this.Views[id] as ModelDetailView).Items[container] = new ModelActionContainerItem(this.Views[id], container, init);
   }
 
-  public RegisterListView(name: string, type: Type<IBaseObject>, init?: IModelListView): void
+  public RegisterListView(id: string, type: Type<IBaseObject>, init?: IModelListView): void
   {
-    this.Views[name] = new ModelListView(this, name, type, init);
+    this.Views[id] = new ModelListView(this, id, type, init);
   }
 
-  public RegisterListViewColumns(name: string, columns: IDictionary<IModelListViewColumn>): void
+  public RegisterListViewColumns(id: string, columns: IDictionary<IModelListViewColumn>): void
   {
     for(const column of Object.keys(columns))
-      (this.Views[name] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[name], column, columns[column]);
+      (this.Views[id] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[id], column, columns[column]);
   }
 
-  public RegisterAction(name: string, init?: IModelAction): void
+  public RegisterAction(id: string, init?: IModelAction): void
   {
-
+    this.Actions[id] = new ModelAction(this, id, init);
   }
 
   public RegisterNavigationItems(parent: ModelNavigation | ModelNavigationItem, items: Array<{ id: string, item?: IModelNavigationItem }>): void
@@ -152,10 +152,10 @@ export class ModelApplication implements IModelNode
     parent.Items.push(...items.map(e => new ModelNavigationItem(this.Navigation, e.id, e.item)));
   }
 
-  // public RegisterDetailViewItems(name: string, items: IDictionary<IModelDetailViewItem>): void
+  // public RegisterDetailViewItems(id: string, items: IDictionary<IModelDetailViewItem>): void
   // {
   //   for(const item of Object.keys(items))
-  //     (this.Views[name] as ModelDetailView).Items[item] = new ModelDetailViewItem(this.Views[name], item, items[item]);
+  //     (this.Views[id] as ModelDetailView).Items[item] = new ModelDetailViewItem(this.Views[id], item, items[item]);
   // }
 
   //#endregion
@@ -178,7 +178,6 @@ export class ModelDataModel implements IModelNode, IModelDataModel
   public ObjectType: Type<IBaseObject>;
   public Caption: string;
   public readonly Members: IDictionary<ModelDataModelMember> = {};
-  public DataStore: DataStore<BaseObject> | null = null;
 
 
   public constructor(parent: IModelNode, objectType: Type<IBaseObject>, init?: IModelDataModel)
@@ -365,9 +364,9 @@ export class ModelListView extends ModelView implements IModelListView
   public Colunms: IDictionary<ModelListViewColumn> = {};
 
 
-  public constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelListView)
+  public constructor(parent: IModelNode, id: string, type: Type<IBaseObject>, init?: IModelListView)
   {
-    super(parent, name, type);
+    super(parent, id, type);
 
     // set default values
     //...
@@ -411,9 +410,9 @@ export class ModelDetailView extends ModelView implements IModelDetailView
   public Items: IDictionary<ModelDetailViewItem> = {};
 
 
-  constructor(parent: IModelNode, name: string, type: Type<IBaseObject>, init?: IModelDetailView)
+  constructor(parent: IModelNode, id: string, type: Type<IBaseObject>, init?: IModelDetailView)
   {
-    super(parent, name, type);
+    super(parent, id, type);
 
     // set default values
     //...
@@ -1494,28 +1493,33 @@ export function Controller(componentType: Type<IComponent>): (controllerType: Ty
 
 //#region Data Store
 
-export abstract class DataStore<T extends IBaseObject>
-{
-  public abstract Get(key: string): Promise<T | null>;
-  public abstract Load(options?: ILoadOptions): Promise<Array<T>>;
-  public abstract Insert(item: T): Promise<T>;
-  public abstract Update(key: string, item: T): Promise<T | null>;
-  public abstract Remove(key: string): Promise<number>;
-  public abstract Count(options?: ICountOptions): Promise<number>;
-}
+type BinaryOp = '=' | '<>' | '>' | '>=' | '<' | '<=' | 'startswith' | 'endswith' | 'contains' | 'isblank';
+type UnaryOp = '!';
+type LogicalOp = 'and' | 'or';
+type EmptyExpression = [];
+type BinaryExpression = [string, BinaryOp, any];
+type UnaryExpression = [UnaryOp, LogicalExpression];
+type LogicalExpression =
+  EmptyExpression
+  | UnaryExpression
+  | BinaryExpression
+  | [LogicalExpression, LogicalOp, LogicalExpression]
+  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression]
+  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression]
+  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression]
+  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression];
 
 
 export interface ILoadOptions
 {
-  Search?: string;
+  Filter?: LogicalExpression;
   Skip?: number;
   Take?: number;
 }
 
-
 class LoadOptions implements ILoadOptions
 {
-  public Search: string = '';
+  public Filter: LogicalExpression = [];
   public Skip: number = 0;
   public Take: number = 0;
 
@@ -1535,6 +1539,18 @@ export interface ICountOptions
 class CountOptions implements ICountOptions
 {
   public Filter: any;
+}
+
+
+
+export abstract class DataStore<T extends IBaseObject>
+{
+  public abstract Get(key: string): Promise<T | null>;
+  public abstract Load(options?: ILoadOptions): Promise<Array<T>>;
+  public abstract Insert(item: T): Promise<T>;
+  public abstract Update(key: string, item: T): Promise<T | null>;
+  public abstract Remove(key: string): Promise<number>;
+  public abstract Count(options?: ICountOptions): Promise<number>;
 }
 
 
@@ -1565,7 +1581,7 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 
     let items = this.Data;
 
-    items = this.Search(items, options.Search ?? '');
+    items = this.Filter(items, options.Filter ?? []);
     items = this.Slice(items, options.Skip ?? 0, options.Take ?? 0);
 
     return new Promise<Array<T>>((resolve, reject) => { resolve(items); });
@@ -1614,16 +1630,70 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
   }
 
 
-  protected Search(array: Array<T>, text: string): Array<T>
+  protected Filter(array: Array<T>, filter: LogicalExpression): Array<T>
   {
-    return array;
+    if(filter.length === 0)
+      return this.Data;
+    else
+      return this.Data.filter(o => this.Match(o, filter));
+  }
+
+  protected Match(object: IBaseObject, filter: LogicalExpression): boolean
+  {
+    // tslint:disable-next-line: no-eval
+    // ['fi', '=', 1] -> (object[fi] === 1)
+    return true;
   }
 
   protected Slice(array: Array<T>, skip: number, take: number): Array<T>
   {
     return array.slice(skip, take === 0 ? array.length : skip + take);
   }
+
+
+
+  protected _expr(e: LogicalExpression): string
+  {
+    const uop = ['!'];
+
+    if(typeof e[0] === 'string')
+    {
+      if(uop.indexOf(e[0]) !== -1)
+        return _nopexpr(e);
+      else
+        return `(object[${e[0]}] ${e[1]} ${_value(e[2])})`;
+    }
+    else
+      return _logical(e);
+  }
 }
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+export class DataSource
+{
+
+}
+
+
+
+export abstract class DataService
+{
+  constructor(model: ModelApplication)
+  {
+
+  }
+
+
+  public Store<T extends IBaseObject>(): DataStore<T>
+  {
+    return new ArrayStore<T>();
+  }
+
+}
+
+
 
 //#endregion
 

@@ -66,7 +66,7 @@ export class AboutViewController extends ViewController
 
     // create Bye action
     this.ByeAction = new SimpleAction('bye', this);
-    this.ByeAction.Container = 'about-actions';
+    //this.ByeAction.Container = 'about-actions';
     this.ByeAction.Execute.Subscribe(() => { console.log('Bye Bye!'); });
     //
     this.Actions.push(this.ByeAction);

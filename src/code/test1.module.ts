@@ -94,10 +94,10 @@ export class Book extends BaseObject
 @Injectable({ providedIn: 'root' })
 export class BooksDataStore extends ArrayStore<Book>
 {
-  protected Search(array: Array<Book>, text: string): Array<Book>
-  {
-    return array.filter(e => e.Title.indexOf(text) !== -1 || (e.Description !== null && e.Description.indexOf(text) !== -1));
-  }
+  // protected Filter(array: Array<Book>, text: string): Array<Book>
+  // {
+  //   return array.filter(e => e.Title.indexOf(text) !== -1 || (e.Description !== null && e.Description.indexOf(text) !== -1));
+  // }
 }
 
 

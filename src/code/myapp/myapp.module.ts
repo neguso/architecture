@@ -68,8 +68,8 @@ export class MyAppModule
     model.RegisterActionsContainerItem(about, 'about-actions');
 
     // actions models are optional
-    model.Actions['hello'] = new ModelAction(model, 'hello', { Caption: 'Say Hello', Container: 'about-actions' });
-    model.Actions['bye'] = new ModelAction(model, 'byw', { Caption: 'Say Bye Bye', Container: 'about-actions' });
+    model.RegisterAction('hello', { Caption: 'Hello!', Container: 'about-actions' });
+    model.RegisterAction('bye', { Caption: 'Bye Bye!', Container: 'about-actions' });
 
     const customers = 'Customers_ListView';
     //model.RegisterListView(customers, Customer);
