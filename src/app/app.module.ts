@@ -32,7 +32,8 @@ import { MyApplication } from 'src/code/myapp/application';
     AppRoutingModule,
     BrowserAnimationsModule,
     CoreModule, SystemModule,
-    //Test1Module, Test2Module,
+    Test1Module,
+    //Test2Module,
     MyAppModule
   ],
   providers: [

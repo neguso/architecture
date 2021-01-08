@@ -1626,23 +1626,24 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 
   public Count(options?: ICountOptions): Promise<number>
   {
-    return new Promise<number>((resolve, reject) => { resolve(this.Data.length); });
+    if(typeof options === 'undefined')
+      return new Promise<number>((resolve, reject) => { resolve(this.Data.length); });
+    return new Promise((resolve, reject) => { this.Load({ Filter: options.Filter }).then(); });
   }
 
 
   protected Filter(array: Array<T>, filter: LogicalExpression): Array<T>
   {
     if(filter.length === 0)
-      return this.Data;
+      return array;
     else
-      return this.Data.filter(o => this.Match(o, filter));
-  }
-
-  protected Match(object: IBaseObject, filter: LogicalExpression): boolean
-  {
-    // tslint:disable-next-line: no-eval
-    // ['fi', '=', 1] -> (object[fi] === 1)
-    return true;
+    {
+      const expr = this.Compile(filter);
+      console.log(expr);
+      //return this.Data.filter(o => this.Match(o, expr));
+      // tslint:disable-next-line: no-eval
+      return eval('array.filter(object => ' + expr + ')');
+    }
   }
 
   protected Slice(array: Array<T>, skip: number, take: number): Array<T>
@@ -1651,24 +1652,74 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
   }
 
 
-
-  protected _expr(e: LogicalExpression): string
+  protected Match(object: IBaseObject, expr: string): boolean
   {
-    const uop = ['!'];
+    // tslint:disable-next-line: no-eval
+    return eval(expr);
+  }
 
-    if(typeof e[0] === 'string')
+  protected IsUnaryOperator(value: string): boolean
+  {
+    return ['!'].indexOf(value) !== -1;
+  }
+
+  protected Compile(expr: LogicalExpression): string
+  {
+    if(typeof expr[0] === 'string')
     {
-      if(uop.indexOf(e[0]) !== -1)
-        return _nopexpr(e);
+      if(this.IsUnaryOperator(expr[0]))
+        return this.UnaryExpr(expr);
       else
-        return `(object[${e[0]}] ${e[1]} ${_value(e[2])})`;
+        return this.BinaryExpr(expr);
     }
     else
-      return _logical(e);
+      return this.LogicalExpr(expr);
+  }
+
+  protected BinaryExpr(expr: LogicalExpression): string
+  {
+    const map: any = { '=': '==', '<>': '!=', '>': '>', '>=': '>=', '<': '<', '<=': '<=' };
+    switch(expr[1])
+    {
+      case 'startswith': return `(object['${expr[0]}'] && object['${expr[0]}'].startsWith(${this.ValueExpr(expr[2])}))`;
+      case 'endswith': return `(object['${expr[0]}'] && object['${expr[0]}'].endsWith(${this.ValueExpr(expr[2])}))`;
+      case 'contains': return `(object['${expr[0]}'] && object['${expr[0]}'].indexOf(${this.ValueExpr(expr[2])}) !== -1)`;
+      case 'isblank': return `(object['${expr[0]}'] && object['${expr[0]}'].trim().length === 0)`;
+      default: return `(object['${expr[0]}'] ${map[expr[1] as string]} ${this.ValueExpr(expr[2])})`;
+    }
+  }
+
+  protected UnaryExpr(expr: LogicalExpression): string
+  {
+    return `${expr[0]}` + this.Compile(expr[1] as LogicalExpression) + ``;
+  }
+
+  protected ValueExpr(e: any): string
+  {
+    if(e === null)
+      return 'null';
+    if(typeof e === 'string')
+      return `'${e}'`;
+    return e.toString();
+  }
+
+  protected IsLogicalOperator(value: string): boolean
+  {
+    return ['and', 'or'].indexOf(value) !== -1;
+  }
+
+  protected LogicalExpr(expr: LogicalExpression): string
+  {
+    const map: any = { or: '||', and: '&&' };
+    return '(' + (expr as []).map(el => {
+      if(this.IsLogicalOperator(el))
+        return ` ${map[el]} `;
+      else
+        return this.Compile(el);
+    }).join('') + ')';
   }
 }
 
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 
 export class DataSource
@@ -1690,7 +1741,6 @@ export abstract class DataService
   {
     return new ArrayStore<T>();
   }
-
 }
 
 

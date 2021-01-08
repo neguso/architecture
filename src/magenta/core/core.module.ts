@@ -2,7 +2,7 @@ import { Injector, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
-import { ControllerManager } from './core';
+import { ArrayStore, ControllerManager } from './core';
 import {
   StaticTextViewItemComponent,
   StaticImageViewItemComponent,
@@ -25,5 +25,9 @@ export class CoreModule
     console.log(`Module ${this.constructor.name} created`);
 
     ControllerManager.RegisterInjector(injector);
+
+
+
+
   }
 }

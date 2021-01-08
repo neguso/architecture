@@ -33,7 +33,17 @@ export class Test1Module
     //...
 
     // update application model
-    this.UpdateApplicationModel(model);
+    //this.UpdateApplicationModel(model);
+
+
+    const books = new ArrayStore<Book>(booksdata);
+
+    const s = Date.now();
+    books.Load({ Filter: ['ISDN', 'contains', '4'] })
+      .then(data => {
+        const e = Date.now();
+        console.log(data.length + ' items loaded in: ' + (e - s));
+      });
   }
 
   public UpdateApplicationModel(model: ModelApplication): void
