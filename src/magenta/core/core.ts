@@ -1,7 +1,7 @@
 import { Injectable, Injector, Type } from '@angular/core';
 
 import { IDictionary } from './common';
-import { IBaseObject, BaseObject } from './data';
+import { IBaseObject } from './data';
 
 
 @Injectable({ providedIn: 'root' })
@@ -1323,34 +1323,19 @@ export class ControllerManager
     // create controller entry
     this.Components[componentType.name].Controllers.push(controllerType);
 
-    // // create controller instance if component instances already registered
-    // Object.values(this.Components[componentType.name].Instances).forEach(componentInstance => {
-
-    //   // create controller instance
-    //   const controllerData = new ControllerData(controllerType, this.CreateInstance(controllerType, componentInstance.Instance));
-    //   componentInstance.Controllers.push(controllerData);
-
-    //   // fire Created and Activated events
-    //   controllerData.Instance.Created.Trigger(EventArgs.Empty);
-    //   controllerData.Instance.Active.SetItemValue('Controller Created', true);
-    // });
-
     // create controller instance for all instantiated components or that derive from component
     Object.values(this.Components).filter(e => e.Type === componentType || this.Extends(e.Type, componentType)).forEach(componentData => {
 
       Object.values(componentData.Instances).forEach(componentInstance => {
-
         // create controller instance
         const controllerData = new ControllerData(controllerType, this.CreateInstance(controllerType, componentInstance.Instance));
         componentInstance.Controllers.push(controllerData);
 
-        // fire Created and Activated events
+        // fire Created event and vote to activate controller
         controllerData.Instance.Created.Trigger(EventArgs.Empty);
         controllerData.Instance.Active.SetItemValue('Controller Created', true);
       });
-
     });
-
   }
 
   private Extends(derived: Type<IComponent>, base: Type<IComponent>): boolean
@@ -1380,32 +1365,16 @@ export class ControllerManager
       return;
 
     const componentInstance = new ComponentInstance(component);
-
     this.Components[component.constructor.name].Instances[component.UniqueId] = componentInstance;
-
-    // // create controllers instances
-    // this.Components[component.constructor.name].Controllers.forEach(controllerType => {
-    //   componentInstance.Controllers.push(new ControllerData(controllerType, this.CreateInstance(controllerType, component)));
-    // });
-
-    // // fire Created and Activated events
-    // componentInstance.Controllers.forEach(controllerData => {
-    //   if(controllerData.Instance !== null)
-    //   {
-    //     controllerData.Instance.Created.Trigger(EventArgs.Empty);
-    //     controllerData.Instance.Active.SetItemValue('Controller Created', true);
-    //   }
-    // });
 
     // create controllers instances from component and all extended components
     Object.values(this.Components).filter(e => e.Type === component.constructor || this.Extends(component.constructor as Type<IComponent>, e.Type)).forEach(componentData => {
       Object.values(componentData.Controllers).forEach(controllerType => {
-        // create controllers instances
         componentInstance.Controllers.push(new ControllerData(controllerType, this.CreateInstance(controllerType, component)));
       });
     });
 
-    // fire Created and Activated events
+    // fire Created event and vote to activate controller
     componentInstance.Controllers.forEach(controllerData => {
       if(controllerData.Instance !== null)
       {
@@ -1479,7 +1448,6 @@ export class ControllerManager
 
 
 
-
 /**
  * Decorator, register a Controller for a Component.
  */
@@ -1487,263 +1455,6 @@ export function Controller(componentType: Type<IComponent>): (controllerType: Ty
 {
   return (controllerType: Type<IController>): void => { ControllerManager.Register(controllerType, componentType); };
 }
-
-//#endregion
-
-
-//#region Data Store
-
-type BinaryOp = '=' | '<>' | '>' | '>=' | '<' | '<=' | 'startswith' | 'endswith' | 'contains' | 'isblank';
-type UnaryOp = '!';
-type LogicalOp = 'and' | 'or';
-type EmptyExpression = [];
-type BinaryExpression = [string, BinaryOp, any];
-type UnaryExpression = [UnaryOp, LogicalExpression];
-type LogicalExpression =
-  EmptyExpression
-  | UnaryExpression
-  | BinaryExpression
-  | [LogicalExpression, LogicalOp, LogicalExpression]
-  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression]
-  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression]
-  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression]
-  | [LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression, LogicalOp, LogicalExpression];
-
-
-export interface ILoadOptions
-{
-  Filter?: LogicalExpression;
-  Skip?: number;
-  Take?: number;
-}
-
-class LoadOptions implements ILoadOptions
-{
-  public Filter: LogicalExpression = [];
-  public Skip: number = 0;
-  public Take: number = 0;
-
-
-  constructor(init: ILoadOptions)
-  {
-    Object.assign(this, init);
-  }
-}
-
-
-export interface ICountOptions
-{
-  Filter: any;
-}
-
-class CountOptions implements ICountOptions
-{
-  public Filter: any;
-}
-
-
-
-export abstract class DataStore<T extends IBaseObject>
-{
-  public abstract Get(key: string): Promise<T | null>;
-  public abstract Load(options?: ILoadOptions): Promise<Array<T>>;
-  public abstract Insert(item: T): Promise<T>;
-  public abstract Update(key: string, item: T): Promise<T | null>;
-  public abstract Remove(key: string): Promise<number>;
-  public abstract Count(options?: ICountOptions): Promise<number>;
-}
-
-
-
-export class ArrayStore<T extends IBaseObject> extends DataStore<T>
-{
-  public Data: Array<T> = [];
-
-
-  constructor(data?: Array<T>)
-  {
-    super();
-
-    if(typeof data !== 'undefined')
-      this.Data = data;
-  }
-
-
-  public Get(key: string): Promise<T | null>
-  {
-    return new Promise<T | null>((resolve, reject) => { resolve(this.Data.find(value => value.Id === key) ?? null); });
-  }
-
-  public Load(options?: ILoadOptions): Promise<Array<T>>
-  {
-    if(typeof options === 'undefined')
-      return new Promise<Array<T>>((resolve, reject) => { resolve(this.Data); });
-
-    let items = this.Data;
-
-    items = this.Filter(items, options.Filter ?? []);
-    items = this.Slice(items, options.Skip ?? 0, options.Take ?? 0);
-
-    return new Promise<Array<T>>((resolve, reject) => { resolve(items); });
-  }
-
-  public Insert(item: T): Promise<T>
-  {
-    return new Promise<T>((resolve, reject) => {
-      this.Data.push(item);
-      resolve(item);
-    });
-  }
-
-  public Update(key: string, item: T): Promise<T | null>
-  {
-    return new Promise<T | null>((resolve, reject) => {
-      const i = this.Data.findIndex(value => value.Id === key);
-      if(i === -1)
-      {
-        resolve(null);
-        return;
-      }
-
-      this.Data.splice(i, 1, item);
-      resolve(item);
-    });
-  }
-
-  public Remove(key: string): Promise<number>
-  {
-    return new Promise<number>((resolve, reject) => {
-      const i = this.Data.findIndex(value => value.Id === key);
-      if(i === -1)
-      {
-        resolve(0);
-        return;
-      }
-
-      resolve(this.Data.splice(i, 1).length);
-    });
-  }
-
-  public Count(options?: ICountOptions): Promise<number>
-  {
-    if(typeof options === 'undefined')
-      return new Promise<number>((resolve, reject) => { resolve(this.Data.length); });
-    return new Promise((resolve, reject) => { this.Load({ Filter: options.Filter }).then(); });
-  }
-
-
-  protected Filter(array: Array<T>, filter: LogicalExpression): Array<T>
-  {
-    if(filter.length === 0)
-      return array;
-    else
-    {
-      const expr = this.Compile(filter);
-      console.log(expr);
-      //return this.Data.filter(o => this.Match(o, expr));
-      // tslint:disable-next-line: no-eval
-      return eval('array.filter(object => ' + expr + ')');
-    }
-  }
-
-  protected Slice(array: Array<T>, skip: number, take: number): Array<T>
-  {
-    return array.slice(skip, take === 0 ? array.length : skip + take);
-  }
-
-
-  protected Match(object: IBaseObject, expr: string): boolean
-  {
-    // tslint:disable-next-line: no-eval
-    return eval(expr);
-  }
-
-  protected IsUnaryOperator(value: string): boolean
-  {
-    return ['!'].indexOf(value) !== -1;
-  }
-
-  protected Compile(expr: LogicalExpression): string
-  {
-    if(typeof expr[0] === 'string')
-    {
-      if(this.IsUnaryOperator(expr[0]))
-        return this.UnaryExpr(expr);
-      else
-        return this.BinaryExpr(expr);
-    }
-    else
-      return this.LogicalExpr(expr);
-  }
-
-  protected BinaryExpr(expr: LogicalExpression): string
-  {
-    const map: any = { '=': '==', '<>': '!=', '>': '>', '>=': '>=', '<': '<', '<=': '<=' };
-    switch(expr[1])
-    {
-      case 'startswith': return `(object['${expr[0]}'] && object['${expr[0]}'].startsWith(${this.ValueExpr(expr[2])}))`;
-      case 'endswith': return `(object['${expr[0]}'] && object['${expr[0]}'].endsWith(${this.ValueExpr(expr[2])}))`;
-      case 'contains': return `(object['${expr[0]}'] && object['${expr[0]}'].indexOf(${this.ValueExpr(expr[2])}) !== -1)`;
-      case 'isblank': return `(object['${expr[0]}'] && object['${expr[0]}'].trim().length === 0)`;
-      default: return `(object['${expr[0]}'] ${map[expr[1] as string]} ${this.ValueExpr(expr[2])})`;
-    }
-  }
-
-  protected UnaryExpr(expr: LogicalExpression): string
-  {
-    return `${expr[0]}` + this.Compile(expr[1] as LogicalExpression) + ``;
-  }
-
-  protected ValueExpr(e: any): string
-  {
-    if(e === null)
-      return 'null';
-    if(typeof e === 'string')
-      return `'${e}'`;
-    return e.toString();
-  }
-
-  protected IsLogicalOperator(value: string): boolean
-  {
-    return ['and', 'or'].indexOf(value) !== -1;
-  }
-
-  protected LogicalExpr(expr: LogicalExpression): string
-  {
-    const map: any = { or: '||', and: '&&' };
-    return '(' + (expr as []).map(el => {
-      if(this.IsLogicalOperator(el))
-        return ` ${map[el]} `;
-      else
-        return this.Compile(el);
-    }).join('') + ')';
-  }
-}
-
-
-
-export class DataSource
-{
-
-}
-
-
-
-export abstract class DataService
-{
-  constructor(model: ModelApplication)
-  {
-
-  }
-
-
-  public Store<T extends IBaseObject>(): DataStore<T>
-  {
-    return new ArrayStore<T>();
-  }
-}
-
-
 
 //#endregion
 

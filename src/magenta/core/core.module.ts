@@ -2,7 +2,7 @@ import { Injector, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 
-import { ArrayStore, ControllerManager } from './core';
+import { ControllerManager } from './core';
 import {
   StaticTextViewItemComponent,
   StaticImageViewItemComponent,

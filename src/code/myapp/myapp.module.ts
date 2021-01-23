@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { CoreModule } from '../../magenta/core/core.module';
-import { ModelAction, ModelApplication } from '../../magenta/core';
+import { ArrayStore, DataService, ModelAction, ModelApplication } from '../../magenta/core';
 
 import { MyApplication } from './application';
 import { About, Customer } from './data';
@@ -24,7 +24,7 @@ import { AboutViewController, MainController } from './controllers';
 })
 export class MyAppModule
 {
-  constructor(application: MyApplication, model: ModelApplication)
+  constructor(application: MyApplication, model: ModelApplication, dataService: DataService)
   {
     console.log(`Module ${this.constructor.name} created`);
 
@@ -32,13 +32,13 @@ export class MyAppModule
     //...
 
     // update application model
-    this.UpdateApplicationModel(model);
+    this.UpdateApplicationModel(model, dataService);
   }
 
 
-  public UpdateApplicationModel(model: ModelApplication): void
+  public UpdateApplicationModel(model: ModelApplication, dataService: DataService): void
   {
-    // data models //
+    // Data Models //
 
     // About
     model.RegisterDataModel(About, { });
@@ -47,6 +47,9 @@ export class MyAppModule
       Description: { },
       Logo: { }
     });
+    dataService.RegisterStore(About, new ArrayStore<About>([
+      { Id: '0', Title: 'app title', Description: 'some app description', Logo: 'logo url' }
+    ]));
 
     // Customer
     model.RegisterDataModel(Customer, { });
@@ -57,6 +60,7 @@ export class MyAppModule
       Limited: { Type: Boolean },
       Created: { Type: Date }
     });
+
 
     // Views, Actions //
 
@@ -92,11 +96,3 @@ export class MyAppModule
 
   }
 }
-
-
-
-
-
-
-
-
