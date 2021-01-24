@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { Application, ArrayStore, BaseObject, ModelApplication } from 'src/magenta/core';
+import { Application, ModelApplication } from 'src/magenta/core';
 
 
 @Injectable({ providedIn: 'root' })

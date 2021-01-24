@@ -5,8 +5,9 @@ import { CoreModule } from '../../magenta/core/core.module';
 import { ArrayStore, DataService, ModelAction, ModelApplication } from '../../magenta/core';
 
 import { MyApplication } from './application';
-import { About, Customer } from './data';
-import { AboutViewController, MainController } from './controllers';
+import { About, Book, Customer } from './data';
+import { TestController } from './controllers';
+//import { AboutViewController, MainController } from './controllers';
 
 
 /**
@@ -19,7 +20,8 @@ import { AboutViewController, MainController } from './controllers';
     CoreModule
   ],
   providers: [
-    MainController, AboutViewController
+    //MainController, AboutViewController
+    TestController
   ]
 })
 export class MyAppModule
@@ -48,7 +50,7 @@ export class MyAppModule
       Logo: { }
     });
     dataService.RegisterStore(About, new ArrayStore<About>([
-      { Id: '0', Title: 'app title', Description: 'some app description', Logo: 'logo url' }
+      { Id: '', Title: 'app title', Description: 'some app description', Logo: 'https://lh3.googleusercontent.com/ogw/ADGmqu_yMhxJnXXLDx2mQfoDzNGRPVVrxYsZ47yA9Jzlc-0=s32-c-mo' }
     ]));
 
     // Customer
@@ -75,13 +77,13 @@ export class MyAppModule
     model.RegisterAction('hello', { Caption: 'Hello!', Container: 'about-actions' });
     model.RegisterAction('bye', { Caption: 'Bye Bye!', Container: 'about-actions' });
 
-    const customers = 'Customers_ListView';
-    //model.RegisterListView(customers, Customer);
-    //model.RegisterListViewColumns();
-
-
-    const customer = 'Customer_DetailView';
-    //TODO
+    const books = 'Books_ListView';
+    model.RegisterListView(books, Book);
+    model.RegisterListViewColumns(books, {
+      Title: { },
+      ISDN: { },
+      Published: { }
+    });
 
 
     // Navigation //
@@ -90,9 +92,9 @@ export class MyAppModule
     const navMain = model.Navigation.Items.find(e => e.Id === 'Main');
     if(typeof navMain !== 'undefined')
       model.RegisterNavigationItems(navMain, [
-      { id: 'About', item: { View: 'About_DetailView' } },
-      { id: 'Customers', item: { View: 'Customers_ListView' } }
-    ]);
+        { id: 'About', item: { View: 'About_DetailView' } },
+        { id: 'Books', item: { View: 'Books_ListView', Path: ['books'] } }
+      ]);
 
   }
 }

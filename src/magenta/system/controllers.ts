@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
-import { Controller, ComponentController, ViewController, ModelApplication, ComponentBase, IComponent, ModelNavigationItem, TreeNodeAction } from '../core';
+import { Controller, ComponentController, ViewController, ModelApplication, ComponentBase, IComponent, ModelNavigationItem, TreeNodeAction, DetailView, DataService } from '../core';
 
 
 @Injectable()
@@ -58,10 +58,47 @@ export class ShowNavigationItemController extends ViewController
     const action = new TreeNodeAction(item.Id, this);
     action.Caption = item.Caption;
     action.Container = 'main-navigation';
-    action.Execute.Subscribe(() => { console.log(`Navigate to ${item.View}`); this.router.navigate([], { queryParams: { view: item.View } }); });
+    action.Execute.Subscribe(() => { console.log(`Navigate to ${item.View}`); this.router.navigate(item.Path, { queryParams: { view: item.View } }); });
 
     return action;
   }
-
 }
 
+
+
+@Injectable()
+@Controller(ComponentBase)
+export class DetailViewController extends ViewController
+{
+  private route: ActivatedRoute;
+  private dataService: DataService;
+
+
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication, route: ActivatedRoute, dataService: DataService)
+  {
+    super(component, model);
+
+    this.TargetViewType = DetailView;
+
+    this.route = route;
+    this.dataService = dataService;
+
+    this.Activated.Subscribe(() => this.OnActivated());
+  }
+
+
+  protected OnActivated(): void
+  {
+    const view = this.View as DetailView;
+
+    const dataStore = this.dataService.GetStore(view.Type);
+    if(dataStore !== null)
+    {
+      this.route.queryParams.subscribe(async params => {
+        const key = params['key'] ?? '';
+        const obj = await dataStore.Get(key);
+        view.CurrentObject = obj;
+      });
+    }
+  }
+}

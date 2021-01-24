@@ -1,5 +1,36 @@
 import { Injectable } from '@angular/core';
-import { ComponentController, Controller, ControllerManager, ModelApplication, SimpleAction, ViewController } from 'src/magenta/core';
+import { AboutComponent } from 'src/app/about/about.component';
+import { ComponentController, ComponentLifecycleController, Controller, ControllerManager, ModelApplication, SimpleAction, ViewController } from 'src/magenta/core';
+
+
+@Injectable()
+@Controller(AboutComponent)
+export class TestController extends ComponentController
+{
+  constructor(component: AboutComponent, model: ModelApplication)
+  {
+    super(component, model);
+
+    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
+    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
+    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
+
+    this.Created.Subscribe(() => this.OnCreated());
+  }
+
+
+  public OnCreated(): void
+  {
+    const lifecycleController = ControllerManager.GetController(this.Component, ComponentLifecycleController) as ComponentLifecycleController;
+    lifecycleController.Init.Subscribe(() => { console.log(`${this.Component.constructor.name} initialized`); });
+    lifecycleController.Destroy.Subscribe(() => { console.log(`${this.Component.constructor.name} destroyed`); });
+  }
+}
+
+
+
+
+/*
 
 import { MainTemplateComponent } from 'src/app/main-template/main-template.component';
 
@@ -96,3 +127,5 @@ export class AboutViewController extends ViewController
     const view = this.View;
   }
 }
+
+*/

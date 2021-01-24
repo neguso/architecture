@@ -16,7 +16,6 @@ import {
   BoolList,
   EventArgs
 } from '../magenta/core';
-import { HomeComponent } from '../app/home/home.component';
 import { BooksComponent } from '../app/books/books.component';
 import { CoreModule } from '../magenta/core/core.module';
 
@@ -160,7 +159,7 @@ class BooksListController extends ComponentController
 
 
 
-
+/*
 
 @Injectable()
 @Controller(HomeComponent)
@@ -234,3 +233,5 @@ class FourController extends ComponentController
     });
   }
 }
+
+*/

@@ -18,6 +18,7 @@ export class About extends BaseObject
 }
 
 
+
 export class Customer extends BaseObject
 {
   public Name: string;
@@ -41,10 +42,55 @@ export class Customer extends BaseObject
 
 
 
-export class AboutDataStore extends ArrayStore<About>
+export class Book extends BaseObject
 {
-  constructor()
+  public Title: string;
+  public Description: string | null = null;
+  public ISDN: string | null = null;
+  public Published: Date | null = null;
+  public Copies: number = 0;
+  public FirstEdition: boolean = false;
+  //
+  public LibraryId: string;
+  public Library?: Library;
+
+
+  constructor(id: string, title: string, libraryId: string)
   {
-    super([new About('', 'this is title', 'this is description', 'https://lh3.googleusercontent.com/ogw/ADGmqu_yMhxJnXXLDx2mQfoDzNGRPVVrxYsZ47yA9Jzlc-0=s32-c-mo')]);
+    super(id);
+
+    this.Title = title;
+    this.LibraryId = libraryId;
   }
 }
+
+
+
+export class Library extends BaseObject
+{
+  public Name: string;
+  //
+  public Books?: Array<Book>;
+
+
+  constructor(id: string, name: string)
+  {
+    super(id);
+
+    this.Name = name;
+  }
+}
+
+
+
+const librariesdata: Array<Library> = [
+  { Id: '1', Name: 'library 1' },
+  { Id: '2', Name: 'library 2' },
+  { Id: '3', Name: 'library 3' }
+];
+
+const booksdata: Array<Book> = [
+  { Id: '01', Title: 'book 2', Description: 'alpha', ISDN: '001', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '1' },
+  { Id: '02', Title: 'book 3', Description: 'beta', ISDN: '002', Published: new Date('2020-01-02'), Copies: 2345678, FirstEdition: true, LibraryId: '2' },
+  { Id: '03', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' }
+];

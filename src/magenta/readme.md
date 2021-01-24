@@ -22,3 +22,20 @@ Contains basic functionality to build simple Angular applications using Angular 
 ## 2. System
 
 Contains extended functionality.
+
+Components:
+* MainComponent
+* ListComponent
+* DetailComponent
+
+Views:
+* Main_DetailView
+* List_ListView
+* Detail_DetailView
+* Lookup_ListView
+
+Controllers:
+* to implement views actions
+
+
+

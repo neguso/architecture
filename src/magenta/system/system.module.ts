@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { ShowNavigationItemController } from './controllers';
+import { DetailViewController, ShowNavigationItemController } from './controllers';
 
 
 @NgModule({
   imports: [CommonModule],
   declarations: [],
   exports: [],
-  providers: [ShowNavigationItemController]
+  providers: [ShowNavigationItemController, DetailViewController]
 })
 export class SystemModule
 {

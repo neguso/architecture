@@ -284,6 +284,10 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
 
 
 
+//export class MapStore<T extends IBaseObject> extends DataStore<T> {}
+
+
+
 export class LocalStore<T extends IBaseObject> extends DataStore<T>
 {
   public Get(key: string): Promise<T | null> {

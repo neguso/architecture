@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { ComponentBase } from '../../magenta/core';
 
 @Component({
@@ -6,19 +7,12 @@ import { ComponentBase } from '../../magenta/core';
   templateUrl: './books.component.html',
   styleUrls: ['./books.component.scss']
 })
-export class BooksComponent extends ComponentBase implements OnInit
+export class BooksComponent extends ComponentBase
 {
-
-  constructor()
+  constructor(route: ActivatedRoute)
   {
-    super();
-
+    super(route);
   }
-
-  public ngOnInit(): void
-  {
-  }
-
 }
 
 

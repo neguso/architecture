@@ -9,14 +9,14 @@ import {
   ActionsContainerViewItemComponent,
   ActionsContainerNavigationComponent
 } from './components';
-import { ComponentLifecycleController } from './controllers';
+import { ComponentLifecycleController, CoreController } from './controllers';
 
 
 @NgModule({
   imports: [CommonModule, MatButtonModule],
   declarations: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent, ActionsContainerNavigationComponent],
   exports: [StaticTextViewItemComponent, StaticImageViewItemComponent, ActionsContainerViewItemComponent, ActionsContainerNavigationComponent],
-  providers: [ComponentLifecycleController]
+  providers: [ComponentLifecycleController, CoreController]
 })
 export class CoreModule
 {

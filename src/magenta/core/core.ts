@@ -1,4 +1,5 @@
 import { Injectable, Injector, Type } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { IDictionary } from './common';
 import { IBaseObject } from './data';
@@ -23,15 +24,31 @@ export class Application
     //TODO setup specific application with params
   }
 
-  //TODO move this into a system module
-  public CreateDetailView(viewId: string): DetailView | null
+
+
+  public CreateView(model: ModelView): View | null
   {
-    if(typeof this.Model.Views[viewId] === 'undefined')
-      return null;
+    if(model instanceof ModelDetailView)
+      return this.CreateDetailView(model);
+    else if(model instanceof ModelListView)
+      return this.CreateListView(model);
 
-    const model = this.Model.Views[viewId] as ModelDetailView;
-    const view = new DetailView(viewId, model.ObjectType, null, this.Model);
+    return null;
+  }
 
+  public CreateListView(model: ModelListView): ListView
+  {
+    const view = new ListView(model.Id, model.ObjectType, null, this.Model);
+
+    return view;
+  }
+
+  public CreateDetailView(model: ModelDetailView): DetailView
+  {
+    // create view
+    const view = new DetailView(model.Id, model.ObjectType, null, this.Model);
+
+    // create view items
     Object.entries(model.Items).forEach(entry => {
 
       const key = entry[0];
@@ -611,6 +628,7 @@ export class ModelNavigation implements IModelNode
 export interface IModelNavigationItem
 {
   Index?: number;
+  Path?: Array<any>;
   View?: string;
   ObjectKey?: string;
   Caption?: string;
@@ -626,6 +644,7 @@ export class ModelNavigationItem implements IModelNode
   public readonly Parent: IModelNode;
 
   public Id: string;
+  public Path: Array<any> = [];
   public View: string = '';
   public ObjectKey: string | null = null;
   public Caption: string;
@@ -664,7 +683,6 @@ export class ModelNavigationItem implements IModelNode
     return this.image ?? (this.Items.length === 0 ? this.Root.DefaultLeafImage : this.Root.DefaultNodeImage);
   }
 }
-
 
 //#endregion
 
@@ -814,22 +832,30 @@ export class EventAggregator
 export interface IComponent
 {
   UniqueId: string;
-  Events: EventAggregator;
   View: View | null;
+  Route: ActivatedRoute;
+  //
+  Events: EventAggregator;
   State: StateManager;
+  //
+  SetView(view: View | null): void;
 }
 
 
 export class ComponentBase implements IComponent
 {
   public readonly UniqueId: string = ComponentBase.getInstanceCounter();
-  public Events: EventAggregator = new EventAggregator();
   public View: View | null = null;
+  public readonly Route: ActivatedRoute;
+  //
+  public Events: EventAggregator = new EventAggregator();
   public State: StateManager = new StateManager();
 
 
-  constructor()
+  constructor(route: ActivatedRoute)
   {
+    this.Route = route;
+
     // register component for controllers
     ControllerManager.RegisterComponent(this);
   }
@@ -845,6 +871,8 @@ export class ComponentBase implements IComponent
 
     // activate new view controllers
     ControllerManager.SetView(view, this);
+
+    console.log(`View ${view?.Id} set for component ${this.constructor.name}`);
   }
 
 
@@ -1203,6 +1231,7 @@ export class ViewController extends ComponentController
   public View: View | null = null;
 
   public readonly TargetViews: Array<string> = [];
+  public TargetViewType: any = null;
 
 
   constructor(component: IComponent, model: ModelApplication)
@@ -1219,7 +1248,7 @@ export class ViewController extends ComponentController
   protected Match(view: View): boolean
   {
     // check if view satisfy conditions for controller to be activated
-    return this.TargetViews.length === 0 || this.TargetViews.includes(view.Id);
+    return (this.TargetViews.length === 0 || this.TargetViews.includes(view.Id)) && (this.TargetViewType === null || view instanceof this.TargetViewType);
   }
 
   protected AddActions(view: View, actions: Array<ActionBase>): void
@@ -1596,7 +1625,7 @@ export class ListView extends ObjectView
   //TODO
 
 
-  constructor(id: string, type: Type<IBaseObject>, collectionSource: CollectionSource, model: ModelApplication)
+  constructor(id: string, type: Type<IBaseObject>, collectionSource: CollectionSource | null, model: ModelApplication)
   {
     super(id, type, model);
   }
