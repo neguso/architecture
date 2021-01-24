@@ -21,7 +21,7 @@ export class MainTemplateComponent extends ComponentBase implements OnInit
 
   constructor(application: MyApplication, route: ActivatedRoute)
   {
-    super();
+    super(route);
 
     this.application = application;
     this.route = route;
