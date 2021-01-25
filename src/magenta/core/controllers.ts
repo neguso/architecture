@@ -85,5 +85,4 @@ export class CoreController extends ComponentController
   {
     this.Component.SetView(this.Application.CreateView(this.Model.Views[data['view']]));
   }
-
 }

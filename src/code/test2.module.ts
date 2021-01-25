@@ -28,10 +28,9 @@ export class Test2Module
     });
 
     model.RegisterListView('Library-List', Library, { });
-    model.RegisterListViewColumns('Library-List', {
-      Name: { },
-      Address: { },
-    });
+    model.RegisterStaticTextColumn('Library-List', 'Name', {});
+    model.RegisterStaticTextColumn('Library-List', 'Address', {});
+
     //model.Views['Library-List'].Caption;
   }
 }

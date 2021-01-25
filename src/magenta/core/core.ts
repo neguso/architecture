@@ -38,7 +38,20 @@ export class Application
 
   public CreateListView(model: ModelListView): ListView
   {
+    // create view
     const view = new ListView(model.Id, model.ObjectType, null, this.Model);
+
+    // create view colums
+    Object.entries(model.Colunms).forEach(entry => {
+
+      const key = entry[0];
+      const value = entry[1];
+
+      if(value instanceof ModelStaticTextColunm)
+        view.Items[key] = new StaticTextColumn(key, view);
+      else
+        throw new Error(`Unknown list view column type: ${key}:${value.constructor.name}.`);
+    });
 
     return view;
   }
@@ -153,10 +166,9 @@ export class ModelApplication implements IModelNode
     this.Views[id] = new ModelListView(this, id, type, init);
   }
 
-  public RegisterListViewColumns(id: string, columns: IDictionary<IModelListViewColumn>): void
+  public RegisterStaticTextColumn(id: string, field: string, init?: IModelStaticTextColunm): void
   {
-    for(const column of Object.keys(columns))
-      (this.Views[id] as ModelListView).Colunms[column] = new ModelListViewColumn(this.Views[id], column, columns[column]);
+    (this.Views[id] as ModelListView).Colunms[field] = new ModelStaticTextColunm(this.Views[id], field, init);
   }
 
   public RegisterAction(id: string, init?: IModelAction): void
@@ -356,7 +368,7 @@ export class ModelDashboardViewItem implements IModelNode, IModelDashboardViewIt
   public readonly Parent: IModelNode;
 
 
-  constructor(parent: IModelNode, init?: IModelListViewColumn)
+  constructor(parent: IModelNode, init?: IModelDashboardViewItem)
   {
     this.Parent = parent;
 
@@ -394,15 +406,41 @@ export class ModelListView extends ModelView implements IModelListView
 }
 
 
-export interface IModelListViewColumn
+
+export enum ColumnSortOrder
+{
+  Ascending, Descending
+}
+
+
+export abstract class ModelListViewColumn extends ModelViewField
+{
+  public SortIndex: number = -1;
+  public SortOrder: ColumnSortOrder = ColumnSortOrder.Ascending;
+
+
+  constructor(parent: IModelNode, field: string)
+  {
+    super(parent, field);
+
+    // set default values
+    //...
+  }
+}
+
+
+export interface IModelStaticTextColunm
 {
   Index?: number;
   Caption?: string | null;
+  SortIndex?: number;
+  SortOrder?: ColumnSortOrder;
 }
 
-export class ModelListViewColumn extends ModelViewField implements IModelListViewColumn
+
+export class ModelStaticTextColunm extends ModelListViewColumn implements IModelStaticTextColunm
 {
-  constructor(parent: IModelNode, field: string, init?: IModelListViewColumn)
+  constructor(parent: IModelNode, field: string, init?: IModelStaticTextColunm)
   {
     super(parent, field);
 
@@ -440,16 +478,10 @@ export class ModelDetailView extends ModelView implements IModelDetailView
 }
 
 
-export interface IModelDetailViewItem
-{
-  Index?: number;
-  Caption?: string | null;
-  MaxLength?: number;
-}
 
-export abstract class ModelDetailViewItem extends ModelViewField implements IModelDetailViewItem
+export abstract class ModelDetailViewItem extends ModelViewField
 {
-  //TODO consider removing this prop
+  //TODO move this property in property editor item
   private maxLength: number | null = null;
   public set MaxLength(value: number)
   {
@@ -463,15 +495,12 @@ export abstract class ModelDetailViewItem extends ModelViewField implements IMod
   }
 
 
-  constructor(parent: IModelNode, field: string, init?: IModelDetailViewItem)
+  constructor(parent: IModelNode, field: string)
   {
     super(parent, field);
 
     // set default values
     //...
-
-    // set user provided values
-    Object.assign(this, init);
   }
 }
 
@@ -1689,6 +1718,10 @@ export class StaticTextViewItem extends ViewItem
       return this.Model?.Caption ?? '';
     return this.caption;
   }
+  public set Caption(value: string)
+  {
+    this.caption = value;
+  }
 
   public get Text(): string
   {
@@ -1721,6 +1754,10 @@ export class StaticImageViewItem extends ViewItem
     if(this.caption === null)
       return this.Model?.Caption ?? '';
     return this.caption;
+  }
+  public set Caption(value: string)
+  {
+    this.caption = value;
   }
 
   public get Url(): string | null
@@ -1766,10 +1803,68 @@ export class ActionsContainerViewItem extends ViewItem
   {
     return this.View.Actions;
   }
-
 }
 
 
+
+export abstract class ColumnViewItem extends ViewItem
+{
+  constructor(id: string, view: ListView)
+  {
+    super(id, view);
+  }
+
+
+  public get Model(): ModelListViewColumn | undefined
+  {
+    return (this.View.Model as ModelListView).Colunms[this.Id];
+  }
+
+  private caption: string | null = null;
+  public get Caption(): string
+  {
+    if(this.caption === null)
+      return this.Model?.Caption ?? '';
+    return this.caption;
+  }
+  public set Caption(value: string)
+  {
+    this.caption = value;
+  }
+
+  private sortIndex: number | null = null;
+  public get SortIndex(): number
+  {
+    if(this.sortIndex === null)
+      return this.Model?.SortIndex ?? -1;
+    return this.sortIndex;
+  }
+  public set SortIndex(value: number)
+  {
+    this.sortIndex = value;
+  }
+
+  private sortOrder: ColumnSortOrder | null = null;
+  public get SortOrder(): ColumnSortOrder
+  {
+    if(this.sortOrder === null)
+      return this.Model?.SortOrder ?? ColumnSortOrder.Ascending;
+    return this.sortOrder;
+  }
+  public set SortOrder(value: ColumnSortOrder)
+  {
+    this.sortOrder = value;
+  }
+}
+
+
+export class StaticTextColumn extends ColumnViewItem
+{
+  constructor(id: string, view: ListView)
+  {
+    super(id, view);
+  }
+}
 
 
 

@@ -65,10 +65,8 @@ export class Test1Module
     model.RegisterListView('Books_ListView', Book, {
       Caption: 'Books List'
     });
-    model.RegisterListViewColumns('Books_ListView', {
-      Title: { Index: 1, Caption: 'The Title' },
-      Description: { Index: 2, Caption: 'Short description' }
-    });
+    model.RegisterStaticTextColumn('Books_ListView', 'Title', { Index: 1, Caption: 'The Title' });
+    model.RegisterStaticTextColumn('Books_ListView', 'Description', { Index: 2, Caption: 'Short description' });
 
     // create a detail view
     model.RegisterDetailView('Book_DetailView', Book, {

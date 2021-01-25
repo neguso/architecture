@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { CoreModule } from '../../magenta/core/core.module';
-import { ArrayStore, DataService, ModelAction, ModelApplication } from '../../magenta/core';
+import { ArrayStore, ColumnSortOrder, DataService, ModelAction, ModelApplication } from '../../magenta/core';
 
 import { MyApplication } from './application';
 import { About, Book, Customer } from './data';
@@ -79,11 +79,7 @@ export class MyAppModule
 
     const books = 'Books_ListView';
     model.RegisterListView(books, Book);
-    model.RegisterListViewColumns(books, {
-      Title: { },
-      ISDN: { },
-      Published: { }
-    });
+    model.RegisterStaticTextColumn(books, 'Title', { SortIndex: 0, SortOrder: ColumnSortOrder.Ascending });
 
 
     // Navigation //
