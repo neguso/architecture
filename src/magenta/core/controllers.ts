@@ -6,7 +6,7 @@ import { Controller, ComponentController, ViewController, ModelApplication, Comp
 
 
 /**
- * Controller provide access to Angular component lifecycle events.
+ * Controller that provide access to Angular component lifecycle events.
  */
 @Injectable()
 @Controller(ComponentBase)
@@ -52,7 +52,7 @@ export class ComponentLifecycleController extends ComponentController
 
 
 /**
- * Controller create and assign views to components.
+ * Controller that create and assign views to components.
  */
 @Injectable()
 @Controller(ComponentBase)
@@ -83,6 +83,7 @@ export class CoreController extends ComponentController
 
   protected AssignView(data: IDictionary<any>): void
   {
-    this.Component.SetView(this.Application.CreateView(this.Model.Views[data['view']]));
+    if(typeof data['view'] !== 'undefined')
+      this.Component.SetView(this.Application.CreateView(this.Model.Views[data['view']]));
   }
 }

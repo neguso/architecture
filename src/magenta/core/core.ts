@@ -130,7 +130,7 @@ export class ModelApplication implements IModelNode
 
   //#region Model creation helpers
 
-  public RegisterDataModel(type: Type<IBaseObject>, node: IModelDataModel): void
+  public RegisterDataModel(type: Type<IBaseObject>, node?: IModelDataModel): void
   {
     this.DataModels[type.name] = new ModelDataModel(this, type, node);
   }
@@ -1261,6 +1261,7 @@ export class ViewController extends ComponentController
 
   public readonly TargetViews: Array<string> = [];
   public TargetViewType: any = null;
+  public TargetObjectType: any = null;
 
 
   constructor(component: IComponent, model: ModelApplication)
@@ -1277,7 +1278,9 @@ export class ViewController extends ComponentController
   protected Match(view: View): boolean
   {
     // check if view satisfy conditions for controller to be activated
-    return (this.TargetViews.length === 0 || this.TargetViews.includes(view.Id)) && (this.TargetViewType === null || view instanceof this.TargetViewType);
+    return (this.TargetViews.length === 0 || this.TargetViews.includes(view.Id))
+      && (this.TargetViewType === null || view instanceof this.TargetViewType)
+      && (this.TargetObjectType === null || (view instanceof ObjectView && view.Type === this.TargetObjectType));
   }
 
   protected AddActions(view: View, actions: Array<ActionBase>): void
@@ -1315,11 +1318,8 @@ export class ViewController extends ComponentController
       this.AddActions(this.View, this.Actions);
     }
   }
-
-
-
-
 }
+
 
 
 //#region Controller manager
@@ -1381,7 +1381,7 @@ export class ControllerManager
     // create controller entry
     this.Components[componentType.name].Controllers.push(controllerType);
 
-    // create controller instance for all instantiated components or that derive from component
+    // create controller instance for all instantiated components or derived from component
     Object.values(this.Components).filter(e => e.Type === componentType || this.Extends(e.Type, componentType)).forEach(componentData => {
 
       Object.values(componentData.Instances).forEach(componentInstance => {

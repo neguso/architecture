@@ -21,6 +21,7 @@ export class ShowNavigationItemController extends ViewController
     this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
     this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
+    //TODO need to filter view activation so that do not activate for all views
     //this.TargetViews.push('Main');
 
     this.Activated.Subscribe(() => this.OnActivated());
@@ -58,7 +59,7 @@ export class ShowNavigationItemController extends ViewController
     const action = new TreeNodeAction(item.Id, this);
     action.Caption = item.Caption;
     action.Container = 'main-navigation';
-    action.Execute.Subscribe(() => { console.log(`Navigate to ${item.View}`); this.router.navigate(item.Path, { queryParams: { view: item.View } }); });
+    action.Execute.Subscribe(() => { console.log(`Navigate to ${item.View}`); this.router.navigate(item.Path, { }); });
 
     return action;
   }

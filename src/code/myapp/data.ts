@@ -18,28 +18,10 @@ export class About extends BaseObject
 }
 
 
-
-export class Customer extends BaseObject
+export class MainModel extends BaseObject
 {
-  public Name: string;
-  public Address: string | null;
-  public NoOfEmployees: number = 0;
-  public Limited: boolean = false;
-  public Created: Date;
 
-
-  constructor(name: string, address: string | null, empl: number, ltd: boolean, created: Date)
-  {
-    super();
-
-    this.Name = name;
-    this.Address = address;
-    this.NoOfEmployees = empl;
-    this.Limited = ltd;
-    this.Created = created;
-  }
 }
-
 
 
 export class Book extends BaseObject
@@ -63,7 +45,6 @@ export class Book extends BaseObject
     this.LibraryId = libraryId;
   }
 }
-
 
 
 export class Library extends BaseObject
@@ -94,3 +75,29 @@ const booksdata: Array<Book> = [
   { Id: '02', Title: 'book 3', Description: 'beta', ISDN: '002', Published: new Date('2020-01-02'), Copies: 2345678, FirstEdition: true, LibraryId: '2' },
   { Id: '03', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' }
 ];
+
+
+
+
+
+
+export class Customer extends BaseObject
+{
+  public Name: string;
+  public Address: string | null;
+  public NoOfEmployees: number = 0;
+  public Limited: boolean = false;
+  public Created: Date;
+
+
+  constructor(name: string, address: string | null, empl: number, ltd: boolean, created: Date)
+  {
+    super();
+
+    this.Name = name;
+    this.Address = address;
+    this.NoOfEmployees = empl;
+    this.Limited = ltd;
+    this.Created = created;
+  }
+}

@@ -25,9 +25,5 @@ export class CoreModule
     console.log(`Module ${this.constructor.name} created`);
 
     ControllerManager.RegisterInjector(injector);
-
-
-
-
   }
 }
