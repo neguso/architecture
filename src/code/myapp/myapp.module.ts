@@ -105,6 +105,9 @@ export class MyAppModule
     model.RegisterStaticTextColumn(books, 'Copies');
     model.RegisterStaticTextColumn(books, 'FirstEdition');
 
+    const libraries = 'Libraries_ListView';
+    model.RegisterListView(libraries, Library);
+    //...
 
     // Navigation //
 

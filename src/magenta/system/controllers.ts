@@ -22,7 +22,7 @@ export class ShowNavigationItemController extends ViewController
     this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
     //TODO need to filter view activation so that do not activate for all views
-    //this.TargetViews.push('Main');
+    this.TargetViews.push('Main_DetailView');
 
     this.Activated.Subscribe(() => this.OnActivated());
     this.Deactivated.Subscribe(() => this.OnDeactivated());
@@ -32,6 +32,8 @@ export class ShowNavigationItemController extends ViewController
   protected OnActivated(): void
   {
     this.CreateActions(null, this.Model.Navigation.Items);
+    if(this.View != null)
+      this.AddActions(this.View, this.Actions);
   }
 
   protected OnDeactivated(): void

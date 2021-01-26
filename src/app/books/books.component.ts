@@ -14,6 +14,3 @@ export class BooksComponent extends ComponentBase
     super(route);
   }
 }
-
-
-

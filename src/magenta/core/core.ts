@@ -1262,6 +1262,7 @@ export class ViewController extends ComponentController
 
   protected Initialize(): void
   {
+    this.Active.SetItemValue('Controller Created', false);
     this.Active.SetItemValue('View Assigned', false);
   }
 
@@ -1270,7 +1271,7 @@ export class ViewController extends ComponentController
     // check if view satisfy conditions for controller to be activated
     return (this.TargetViews.length === 0 || this.TargetViews.includes(view.Id))
       && (this.TargetViewType === null || view instanceof this.TargetViewType)
-      && (this.TargetObjectType === null || (view instanceof ObjectView && view.Type === this.TargetObjectType));
+      && (this.TargetObjectType === null || (view instanceof ObjectView && Utils.Extends(view.Type, this.TargetObjectType)));
   }
 
   protected AddActions(view: View, actions: Array<ActionBase>): void
