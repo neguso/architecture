@@ -1,7 +1,7 @@
 import { Injectable, Injector, Type } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { IDictionary } from './common';
+import { IDictionary, Utils } from './common';
 import { IBaseObject } from './data';
 
 
@@ -14,8 +14,6 @@ export class Application
   constructor(model: ModelApplication)
   {
     this.Model = model;
-
-
   }
 
 
@@ -23,7 +21,6 @@ export class Application
   {
     //TODO setup specific application with params
   }
-
 
 
   public CreateView(model: ModelView): View | null
@@ -80,7 +77,6 @@ export class Application
     return view;
   }
 }
-
 
 
 
@@ -180,12 +176,6 @@ export class ModelApplication implements IModelNode
   {
     parent.Items.push(...items.map(e => new ModelNavigationItem(this.Navigation, e.id, e.item)));
   }
-
-  // public RegisterDetailViewItems(id: string, items: IDictionary<IModelDetailViewItem>): void
-  // {
-  //   for(const item of Object.keys(items))
-  //     (this.Views[id] as ModelDetailView).Items[item] = new ModelDetailViewItem(this.Views[id], item, items[item]);
-  // }
 
   //#endregion
 }
@@ -1382,7 +1372,7 @@ export class ControllerManager
     this.Components[componentType.name].Controllers.push(controllerType);
 
     // create controller instance for all instantiated components or derived from component
-    Object.values(this.Components).filter(e => e.Type === componentType || this.Extends(e.Type, componentType)).forEach(componentData => {
+    Object.values(this.Components).filter(e => e.Type === componentType || Utils.Extends(e.Type, componentType)).forEach(componentData => {
 
       Object.values(componentData.Instances).forEach(componentInstance => {
         // create controller instance
@@ -1394,17 +1384,6 @@ export class ControllerManager
         controllerData.Instance.Active.SetItemValue('Controller Created', true);
       });
     });
-  }
-
-  private Extends(derived: Type<IComponent>, base: Type<IComponent>): boolean
-  {
-    if(derived === Object.prototype.constructor)
-      return false;
-
-    if(Object.getPrototypeOf(derived.prototype).constructor === base.prototype.constructor)
-      return true;
-    else
-      return this.Extends(Object.getPrototypeOf(derived.prototype).constructor, base);
   }
 
   private GetControllers(component: IComponent): Array<IController>
@@ -1426,7 +1405,7 @@ export class ControllerManager
     this.Components[component.constructor.name].Instances[component.UniqueId] = componentInstance;
 
     // create controllers instances from component and all extended components
-    Object.values(this.Components).filter(e => e.Type === component.constructor || this.Extends(component.constructor as Type<IComponent>, e.Type)).forEach(componentData => {
+    Object.values(this.Components).filter(e => e.Type === component.constructor || Utils.Extends(component.constructor as Type<any>, e.Type)).forEach(componentData => {
       Object.values(componentData.Controllers).forEach(controllerType => {
         componentInstance.Controllers.push(new ControllerData(controllerType, this.CreateInstance(controllerType, component)));
       });
