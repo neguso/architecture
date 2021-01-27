@@ -1,7 +1,7 @@
 import { Injectable, Injector, Type } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { IDictionary, Utils } from './common';
+import { Collection, Event, EventAggregator, EventArgs, IDictionary, Utils } from './common';
 import { IBaseObject } from './data';
 
 
@@ -765,86 +765,7 @@ export enum PredefinedContainer
 
 
 
-export class EventArgs
-{
-  public static readonly Empty: EventArgs = new EventArgs();
-}
 
-
-export class Event<T extends EventArgs>
-{
-  protected readonly Handlers: Array<(data: T) => void> = [];
-
-
-  public Subscribe(handler: (data: T) => void): void
-  {
-    this.Handlers.push(handler);
-  }
-
-  public Unsubscribe(handler: (data: T) => void): void
-  {
-    this.Handlers.splice(this.Handlers.indexOf(handler), 1);
-  }
-
-  public UnsubscribeAll(): void
-  {
-    this.Handlers.length = 0;
-  }
-
-  public Trigger(data: T): void
-  {
-    this.Handlers.slice(0).forEach(handler => handler(data));
-  }
-}
-
-
-
-export class EventAggregator
-{
-  protected Events: IDictionary<Event<any>> = {};
-
-
-  public Register(name: string): void
-  {
-    if(this.Events.hasOwnProperty(name))
-      throw new Error(`Duplicate event: ${name}.`);
-
-    this.Events[name] = new Event<any>();
-  }
-
-  public Unregister(name: string): void
-  {
-    if(!this.Events.hasOwnProperty(name))
-      throw new Error(`Event not found: ${name}.`);
-
-    this.Events[name].UnsubscribeAll();
-    delete this.Events[name];
-  }
-
-  public Subscribe(name: string, handler: (data: any) => void): void
-  {
-    if(!this.Events.hasOwnProperty(name))
-      throw new Error(`Event not found: ${name}.`);
-
-    this.Events[name].Subscribe(handler);
-  }
-
-  public Unsubscribe(name: string, handler: (data: any) => void): void
-  {
-    if(!this.Events.hasOwnProperty(name))
-      throw new Error(`Event not found: ${name}.`);
-
-    this.Events[name].Unsubscribe(handler);
-  }
-
-  public Trigger(name: string, data: any): void
-  {
-    if(!this.Events.hasOwnProperty(name))
-      throw new Error(`Event not found: ${name}.`);
-
-    this.Events[name].Trigger(data);
-  }
-}
 
 
 
@@ -1202,7 +1123,7 @@ export interface IController
   Name: string;
   Component: IComponent;
   Model: ModelApplication;
-  Actions: Array<ActionBase>;
+  Actions: Collection<ActionBase>;
   Active: BoolList;
   Created: Event<EventArgs>;
   Activated: Event<EventArgs>;
@@ -1215,7 +1136,7 @@ export abstract class ComponentController implements IController
   public Name: string = '';
   public Component: IComponent;
   public Model: ModelApplication;
-  public readonly Actions: Array<ActionBase> = [];
+  public readonly Actions: Collection<ActionBase> = new Collection<ActionBase>();
   public readonly Active: BoolList = new BoolList();
   public readonly Created: Event<EventArgs> = new Event<EventArgs>();
   public readonly Activated: Event<EventArgs> = new Event<EventArgs>();
@@ -1257,6 +1178,9 @@ export class ViewController extends ComponentController
   constructor(component: IComponent, model: ModelApplication)
   {
     super(component, model);
+
+    this.Actions.ItemAdded.Subscribe(args => this.OnActionAdded(args.AddedItem));
+    this.Actions.ItemRemoved.Subscribe(args => this.OnActionRemoved(args.RemovedItem));
   }
 
 
@@ -1276,12 +1200,32 @@ export class ViewController extends ComponentController
 
   protected AddActions(view: View, actions: Array<ActionBase>): void
   {
-    view.Actions.push(...actions);
+    actions.forEach(action => {
+      const i = view.Actions.findIndex(e => e === action);
+      if(i === -1)
+        view.Actions.push(action);
+    });
   }
 
   protected RemoveActions(view: View, actions: Array<ActionBase>): void
   {
-    actions.forEach(action => view.Actions.splice(view.Actions.findIndex(va => va === action), 1));
+    actions.forEach(action => {
+      const i = view.Actions.findIndex(e => e === action);
+      if(i >= 0)
+        view.Actions.splice(i, 1);
+    });
+  }
+
+  protected OnActionAdded(action: ActionBase): void
+  {
+    if(this.View !== null)
+      this.AddActions(this.View, [action]);
+  }
+
+  protected OnActionRemoved(action: ActionBase): void
+  {
+    if(this.View !== null)
+      this.RemoveActions(this.View, [action]);
   }
 
 
@@ -1291,7 +1235,7 @@ export class ViewController extends ComponentController
     {
       // remove controller actions from view
       if(this.View !== null)
-        this.RemoveActions(this.View, this.Actions);
+        this.RemoveActions(this.View, this.Actions.ToArray());
 
       this.Active.SetItemValue('View Assigned', false);
       this.View = null;
@@ -1306,7 +1250,7 @@ export class ViewController extends ComponentController
       this.Active.SetItemValue('View Assigned', true);
 
       // add controller actions to view
-      this.AddActions(this.View, this.Actions);
+      this.AddActions(this.View, this.Actions.ToArray());
     }
   }
 }
@@ -1862,4 +1806,3 @@ export class CollectionSource
 }
 
 //#endregion
-

@@ -32,23 +32,19 @@ export class ShowNavigationItemController extends ViewController
   protected OnActivated(): void
   {
     this.CreateActions(null, this.Model.Navigation.Items);
-    if(this.View != null)
-      this.AddActions(this.View, this.Actions);
   }
 
   protected OnDeactivated(): void
   {
-    this.Actions.length = 0;
+    this.Actions.Clear();
   }
 
   public CreateActions(parent: TreeNodeAction | null, items: Array<ModelNavigationItem>): void
   {
-    if(items.length === 0) return;
-
     items.forEach(item => {
       const action = this.CreateAction(item);
       if(parent === null)
-        this.Actions.push(action);
+        this.Actions.Add(action);
       else
         parent.Items.push(action);
 

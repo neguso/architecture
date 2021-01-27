@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { IDictionary } from './common';
-import { Controller, ComponentController, ViewController, ModelApplication, ComponentBase, IComponent, Event, EventArgs, Application } from './core';
+import { IDictionary, Event, EventArgs } from './common';
+import { Controller, ComponentController, ViewController, ModelApplication, ComponentBase, IComponent, Application } from './core';
 
 
 /**

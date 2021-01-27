@@ -1,7 +1,6 @@
 import { Injectable, Type } from '@angular/core';
 
-import { IDictionary } from './common';
-import { Event, EventArgs } from './core';
+import { IDictionary, Event, EventArgs } from './common';
 
 
 export interface IBaseObject
@@ -21,7 +20,6 @@ export abstract class BaseObject implements IBaseObject
     this.Id = id;
   }
 }
-
 
 
 
