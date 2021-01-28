@@ -115,10 +115,14 @@ export class MyAppModule
     const navMain = model.Navigation.Items.find(e => e.Id === 'Main');
     if(typeof navMain !== 'undefined')
       model.RegisterNavigationItems(navMain, [
-        { id: 'About', item: { View: 'About_DetailView', Path: ['about'] } },
         { id: 'Books', item: { View: 'Books_ListView', Path: ['books'] } },
         { id: 'Libraries', item: { View: 'Libraries_ListView', Path: ['libraries'] } }
       ]);
-
+    model.RegisterNavigationItems(model.Navigation, [{ id: 'Administration' }]);
+    const navAdmin = model.Navigation.Items.find(e => e.Id === 'Administration');
+    if(typeof navAdmin !== 'undefined')
+    model.RegisterNavigationItems(navAdmin, [
+      { id: 'About', item: { View: 'About_DetailView', Path: ['about'] } }
+    ]);
   }
 }
