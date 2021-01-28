@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { ComponentBase } from 'src/magenta/core';
+import { ComponentBase, DetailView } from 'src/magenta/core';
 
 
 @Component({

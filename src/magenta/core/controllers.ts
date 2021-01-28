@@ -20,10 +20,6 @@ export class ComponentLifecycleController extends ComponentController
   {
     super(component, model);
 
-    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
-    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
-    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
-
     this.Setup();
   }
 
@@ -63,10 +59,6 @@ export class CoreController extends ComponentController
   constructor(@Inject('IComponent') component: IComponent, model: ModelApplication, application: Application)
   {
     super(component, model);
-
-    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
-    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
-    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
     this.Application = application;
 

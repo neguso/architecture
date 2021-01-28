@@ -1151,6 +1151,10 @@ export abstract class ComponentController implements IController
     this.Initialize();
 
     this.Active.ValueChanged.Subscribe(data => this.ActiveStateChanged(data));
+
+    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
+    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
+    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
   }
 
 
@@ -1524,6 +1528,7 @@ export class StateChangeEventArgs
 //#endregion
 
 
+
 //#region Views
 
 export abstract class View
@@ -1537,6 +1542,19 @@ export abstract class View
   {
     this.Id = id;
     this.Model = model.Views[this.Id];
+  }
+
+
+  private caption: string | null = null;
+  public set Caption(value: string)
+  {
+    this.caption = value;
+  }
+  public get Caption(): string
+  {
+    if(this.caption === null)
+      return this.Model.Caption;
+    return this.caption;
   }
 }
 

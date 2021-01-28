@@ -11,10 +11,6 @@ export class TestController extends ComponentController
   {
     super(component, model);
 
-    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
-    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
-    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
-
     this.Created.Subscribe(() => this.OnCreated());
   }
 
@@ -43,10 +39,6 @@ export class MainController extends ComponentController
   {
     super(component, model);
 
-    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
-    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
-    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
-
     this.Created.Subscribe(() => this.OnCreated());
   }
 
@@ -73,10 +65,6 @@ export class AboutViewController extends ViewController
   constructor(component: MainTemplateComponent, model: ModelApplication)
   {
     super(component, model);
-
-    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
-    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
-    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
 
     this.Name = 'AboutViewController';
 

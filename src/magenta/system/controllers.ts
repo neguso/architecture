@@ -17,10 +17,6 @@ export class ShowNavigationItemController extends ViewController
 
     this.router = router;
 
-    this.Created.Subscribe(() => { console.log(`Controller ${this.constructor.name} created for ${component.constructor.name}`); });
-    this.Activated.Subscribe(() => { console.log(`Controller ${this.constructor.name} activated`); });
-    this.Deactivated.Subscribe(() => { console.log(`Controller ${this.constructor.name} deactivated`); });
-
     //TODO need to filter view activation so that do not activate for all views
     this.TargetViews.push('Main_DetailView');
 
@@ -69,17 +65,15 @@ export class ShowNavigationItemController extends ViewController
 @Controller(ComponentBase)
 export class DetailViewController extends ViewController
 {
-  private route: ActivatedRoute;
   private dataService: DataService;
 
 
-  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication, route: ActivatedRoute, dataService: DataService)
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication, dataService: DataService)
   {
     super(component, model);
 
     this.TargetViewType = DetailView;
 
-    this.route = route;
     this.dataService = dataService;
 
     this.Activated.Subscribe(() => this.OnActivated());
@@ -93,7 +87,7 @@ export class DetailViewController extends ViewController
     const dataStore = this.dataService.GetStore(view.Type);
     if(dataStore !== null)
     {
-      this.route.queryParams.subscribe(async params => {
+      this.Component.Route.data.subscribe(async params => {
         const key = params['key'] ?? '';
         const obj = await dataStore.Get(key);
         view.CurrentObject = obj;
