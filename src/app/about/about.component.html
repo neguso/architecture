@@ -1,7 +1,5 @@
 <p>about works!</p>
 
-<!--
-<static-image [item]="View!.Items['Logo']"></static-image>
-<static-text [item]="View!.Items['Title']"></static-text>
-<static-text [item]="View!.Items['Description']"></static-text>
--->
+<static-image [item]="AsDetailView(View).Items['Logo']"></static-image>
+<static-text [item]="AsDetailView(View).Items['Title']"></static-text>
+<static-text [item]="AsDetailView(View).Items['Description']"></static-text>

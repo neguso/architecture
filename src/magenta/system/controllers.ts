@@ -17,7 +17,7 @@ export class ShowNavigationItemController extends ViewController
 
     this.router = router;
 
-    //TODO need to filter view activation so that do not activate for all views
+    // activate for main view only
     this.TargetViews.push('Main_DetailView');
 
     this.Activated.Subscribe(() => this.OnActivated());
