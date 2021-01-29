@@ -1480,7 +1480,7 @@ export class StateManager
   public set Current(value: string)
   {
     if(!this.States.hasOwnProperty(value))
-      throw new Error(`Invalid state: ${value}.`);
+      throw new Error(`State not found: ${value}.`);
     if(value === this.current)
       return;
 
@@ -1513,8 +1513,8 @@ export class StateManager
   {
     this.StateChange.Subscribe(data =>
     {
-      if(typeof data !== 'undefined' && ([] as Array<string>).concat(states).indexOf(data.newState) !== -1)
-        callback(data?.oldState, data?.newState);
+      if(([] as Array<string>).concat(states).indexOf(data.NewState) !== -1)
+        callback(data.OldState, data.NewState);
     });
   }
 }
@@ -1522,7 +1522,15 @@ export class StateManager
 
 export class StateChangeEventArgs
 {
-  constructor(public oldState: string, public newState: string) { }
+  public readonly OldState: string;
+  public readonly NewState: string;
+
+
+  constructor(oldState: string, newState: string)
+  {
+    this.OldState = oldState;
+    this.NewState = newState;
+  }
 }
 
 //#endregion
