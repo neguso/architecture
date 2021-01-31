@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { AboutComponent } from 'src/app/about/about.component';
-import { ComponentController, ComponentLifecycleController, Controller, ControllerManager, ModelApplication, SimpleAction, ViewController } from 'src/magenta/core';
+import { ComponentBase, ComponentController, ComponentLifecycleController, Controller, ControllerManager, IComponent, ModelApplication, SimpleAction, ViewController } from 'src/magenta/core';
 
 
 @Injectable()
-@Controller(AboutComponent)
+@Controller(ComponentBase)
+//@Controller(AboutComponent)
 export class TestController extends ComponentController
 {
-  constructor(component: AboutComponent, model: ModelApplication)
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
+  //constructor(component: AboutComponent, model: ModelApplication)
   {
     super(component, model);
 

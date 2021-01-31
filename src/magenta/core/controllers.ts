@@ -48,7 +48,7 @@ export class ComponentLifecycleController extends ComponentController
 
 
 /**
- * Controller that create and assign views to components.
+ * Controller that create and assign views to Angular components.
  */
 @Injectable()
 @Controller(ComponentBase)

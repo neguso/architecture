@@ -1,1 +1,15 @@
 <div>books works!</div>
+
+<actions-container [actions]="AsListView(View).Actions" container="listview-actions"></actions-container>
+
+<table mat-table matSort [dataSource]="AsListView(View).DataSource!.Items" (matSortChange)="SortChange($event)" class="mat-elevation-z2">
+  <ng-container *ngFor="let column of AsListView(View).Columns" [matColumnDef]="column.Id">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>{{column.Caption}}</th>
+    <td mat-cell *matCellDef="let element">{{element[column.Id]}}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="AsListView(View).DisplayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: AsListView(View).DisplayedColumns;"></tr>
+</table>
+
+<mat-paginator [pageSizeOptions]="[5, 10, 20]" [length]="AsListView(View).DataSource!.TotalCount" [pageIndex]="AsListView(View).DataSource!.Page" [pageSize]="AsListView(View).DataSource!.PageSize" (page)="PageChange($event)"></mat-paginator>

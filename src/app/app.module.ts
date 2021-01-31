@@ -6,6 +6,10 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
+import { MatTableModule } from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
+import { MatPaginatorModule } from '@angular/material/paginator';
+
 import { CoreModule } from '../magenta/core/core.module';
 import { SystemModule } from '../magenta/system/system.module';
 import { MyAppModule } from '../code/myapp/myapp.module';
@@ -35,6 +39,7 @@ import { LibraryComponent } from './library/library.component';
   imports: [
     CommonModule,
     BrowserModule,
+    MatTableModule, MatSortModule, MatPaginatorModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     CoreModule, SystemModule,

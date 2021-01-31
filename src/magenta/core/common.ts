@@ -24,6 +24,19 @@ export class EventArgs
   public static readonly Empty: EventArgs = new EventArgs();
 }
 
+export class CancelEventArgs extends EventArgs
+{
+  public Cancel: boolean;
+
+
+  constructor(cancel: boolean = false)
+  {
+    super();
+
+    this.Cancel = cancel;
+  }
+}
+
 
 export class Event<T extends EventArgs>
 {

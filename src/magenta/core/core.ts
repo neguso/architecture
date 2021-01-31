@@ -2,7 +2,7 @@ import { Injectable, Injector, Type } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { Collection, Event, EventAggregator, EventArgs, IDictionary, Utils } from './common';
-import { IBaseObject } from './data';
+import { DataSource, IBaseObject, SortExpression } from './data';
 
 
 @Injectable({ providedIn: 'root' })
@@ -36,7 +36,7 @@ export class Application
   public CreateListView(model: ModelListView): ListView
   {
     // create view
-    const view = new ListView(model.Id, model.ObjectType, null, this.Model);
+    const view = new ListView(model.Id, model.ObjectType, this.Model);
 
     // create view colums
     Object.entries(model.Colunms).forEach(entry => {
@@ -56,7 +56,7 @@ export class Application
   public CreateDetailView(model: ModelDetailView): DetailView
   {
     // create view
-    const view = new DetailView(model.Id, model.ObjectType, null, this.Model);
+    const view = new DetailView(model.Id, model.ObjectType, this.Model);
 
     // create view items
     Object.entries(model.Items).forEach(entry => {
@@ -829,6 +829,7 @@ export class ActionBaseEventArgs extends EventArgs
 {
   public Action: ActionBase;
 
+
   constructor(public action: ActionBase)
   {
     super();
@@ -842,9 +843,23 @@ export class ActionExecutingEventArgs extends ActionBaseEventArgs
 {
   public Cancel: boolean = false;
 
+
   constructor(action: ActionBase)
   {
     super(action);
+  }
+}
+
+export class ActionExecuteEventArgs extends ActionBaseEventArgs
+{
+  public Data: any;
+
+
+  constructor(action: ActionBase, data?: any)
+  {
+    super(action);
+
+    this.Data = data;
   }
 }
 
@@ -857,7 +872,7 @@ export abstract class ActionBase
   public readonly Enabled: BoolList = new BoolList();
   //
   public readonly Executing: Event<ActionExecutingEventArgs> = new Event<ActionExecutingEventArgs>();
-  public readonly Execute: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
+  public readonly Execute: Event<ActionExecuteEventArgs> = new Event<ActionExecuteEventArgs>();
   public readonly Executed: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
   public readonly ExecuteCanceled: Event<ActionBaseEventArgs> = new Event<ActionBaseEventArgs>();
 
@@ -927,7 +942,7 @@ export abstract class ActionBase
   }
 
 
-  public DoExecute(): boolean
+  public DoExecute(data?: any): boolean
   {
     const executingArgs = new ActionExecutingEventArgs(this);
     this.Executing.Trigger(executingArgs);
@@ -938,7 +953,7 @@ export abstract class ActionBase
     }
     else
     {
-      this.Execute.Trigger(new ActionBaseEventArgs(this));
+      this.Execute.Trigger(new ActionExecuteEventArgs(this, data));
       this.Executed.Trigger(new ActionBaseEventArgs(this));
     }
     return true;
@@ -1564,6 +1579,11 @@ export abstract class View
       return this.Model.Caption;
     return this.caption;
   }
+
+  public GetAction(id: string): ActionBase | null
+  {
+    return this.Actions.find(a => a.Id === id) ?? null;
+  }
 }
 
 
@@ -1595,34 +1615,62 @@ export abstract class ObjectView extends CompositeView
 
 export class DashboardView extends CompositeView
 {
-
+  //TODO
 }
 
 
 export class ListView extends ObjectView
 {
-  //TODO
+  public DataSource: DataSource<IBaseObject> | null = null;
+  public CurrentObject: IBaseObject | null = null;
+  public readonly SelectedObjects: Array<IBaseObject> = [];
+  public SelectionType: SelectionType = SelectionType.Single;
 
 
-  constructor(id: string, type: Type<IBaseObject>, collectionSource: CollectionSource | null, model: ModelApplication)
+  constructor(id: string, type: Type<IBaseObject>, model: ModelApplication)
   {
     super(id, type, model);
+  }
+
+
+  public get Columns(): Array<ColumnViewItem>
+  {
+    return Object.entries(this.Items)
+      .map(entry => entry[1] as ColumnViewItem);
+  }
+
+  public get DisplayedColumns(): Array<string>
+  {
+    return Object.entries(this.Items)
+      .filter(entry => (entry[1] as ColumnViewItem).Index >= 0)
+      .sort((a, b) => this.ItemsOrderCompare(a[1] as ColumnViewItem, b[1] as ColumnViewItem))
+      .map(entry => entry[0]);
+  }
+
+
+  private ItemsOrderCompare(a: ColumnViewItem, b: ColumnViewItem): number
+  {
+    return a.Index < b.Index ? -1 : (a.Index > b.Index ? 1 : 0);
   }
 }
 
 
 export class DetailView extends ObjectView
 {
-  public CurrentObject: IBaseObject | null;
+  public CurrentObject: IBaseObject | null = null;
   public Mode: ViewEditMode = ViewEditMode.View;
 
 
-  constructor(id: string, type: Type<IBaseObject>, object: IBaseObject | null, model: ModelApplication)
+  constructor(id: string, type: Type<IBaseObject>, model: ModelApplication)
   {
     super(id, type, model);
-
-    this.CurrentObject = object;
   }
+}
+
+
+export enum SelectionType
+{
+  None, Single, Multiple
 }
 
 
@@ -1770,6 +1818,18 @@ export abstract class ColumnViewItem extends ViewItem
     return (this.View.Model as ModelListView).Colunms[this.Id];
   }
 
+  private index: number | null = null;
+  public get Index(): number
+  {
+    if(this.index === null)
+      return this.Model?.Index ?? 0;
+    return this.index;
+  }
+  public set Index(value: number)
+  {
+    this.index = value;
+  }
+
   private caption: string | null = null;
   public get Caption(): string
   {
@@ -1813,21 +1873,6 @@ export class StaticTextColumn extends ColumnViewItem
   constructor(id: string, view: ListView)
   {
     super(id, view);
-  }
-}
-
-
-
-export class CollectionSource
-{
-  public readonly Type: Type<IBaseObject>;
-  public readonly Model: ModelDataModel;
-
-
-  constructor(type: Type<IBaseObject>, model: ModelApplication)
-  {
-    this.Type = type;
-    this.Model = model.DataModels[type.name];
   }
 }
 

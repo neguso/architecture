@@ -5,7 +5,7 @@ import { CoreModule } from '../../magenta/core';
 import { ArrayStore, ColumnSortOrder, DataService, ModelAction, ModelApplication } from '../../magenta/core';
 
 import { MyApplication } from './application';
-import { About, Book, Customer, Library, MainModel } from './data';
+import { About, Book, booksdata, Customer, librariesdata, Library, MainModel } from './data';
 import { TestController } from './controllers';
 //import { AboutViewController, MainController } from './controllers';
 
@@ -49,6 +49,7 @@ export class MyAppModule
       Description: { },
       Logo: { }
     });
+    //
     dataService.RegisterStore(About, new ArrayStore<About>([
       { Id: '0', Title: 'app title', Description: 'some app description', Logo: 'https://lh3.googleusercontent.com/ogw/ADGmqu_yMhxJnXXLDx2mQfoDzNGRPVVrxYsZ47yA9Jzlc-0=s32-c-mo' }
     ]));
@@ -58,6 +59,7 @@ export class MyAppModule
     model.RegisterDataModelMembers(Library, {
       Name: { }
     });
+    dataService.RegisterStore(Library, new ArrayStore<Library>(librariesdata));
 
     // Book
     model.RegisterDataModel(Book, { Caption: 'Book' });
@@ -70,6 +72,8 @@ export class MyAppModule
       FirstEdition: {},
       LibraryId: {}
     });
+    //
+    dataService.RegisterStore(Book, new ArrayStore<Book>(booksdata));
 
     // Customer
     model.RegisterDataModel(Customer, { });
@@ -99,11 +103,11 @@ export class MyAppModule
 
     const books = 'Books_ListView';
     model.RegisterListView(books, Book);
-    model.RegisterStaticTextColumn(books, 'Title', { SortIndex: 0, SortOrder: ColumnSortOrder.Ascending });
-    model.RegisterStaticTextColumn(books, 'ISDN');
-    model.RegisterStaticTextColumn(books, 'Published');
-    model.RegisterStaticTextColumn(books, 'Copies');
-    model.RegisterStaticTextColumn(books, 'FirstEdition');
+    model.RegisterStaticTextColumn(books, 'Title', { Index: 0, SortIndex: 0, SortOrder: ColumnSortOrder.Ascending });
+    model.RegisterStaticTextColumn(books, 'ISDN', { Index: 2 });
+    model.RegisterStaticTextColumn(books, 'Published', { Index: 1 });
+    model.RegisterStaticTextColumn(books, 'Copies', { Index: 3 });
+    model.RegisterStaticTextColumn(books, 'First Edition', { Index: 4 });
 
     const libraries = 'Libraries_ListView';
     model.RegisterListView(libraries, Library);

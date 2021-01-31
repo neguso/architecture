@@ -64,16 +64,25 @@ export class Library extends BaseObject
 
 
 
-const librariesdata: Array<Library> = [
+export const librariesdata: Array<Library> = [
   { Id: '1', Name: 'library 1' },
   { Id: '2', Name: 'library 2' },
   { Id: '3', Name: 'library 3' }
 ];
 
-const booksdata: Array<Book> = [
+export const booksdata: Array<Book> = [
   { Id: '01', Title: 'book 2', Description: 'alpha', ISDN: '001', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '1' },
   { Id: '02', Title: 'book 3', Description: 'beta', ISDN: '002', Published: new Date('2020-01-02'), Copies: 2345678, FirstEdition: true, LibraryId: '2' },
-  { Id: '03', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' }
+  { Id: '03', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' },
+  { Id: '04', Title: 'book 2', Description: 'alpha', ISDN: '001', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '1' },
+  { Id: '05', Title: 'book 3', Description: 'beta', ISDN: '002', Published: new Date('2020-01-02'), Copies: 2345678, FirstEdition: true, LibraryId: '2' },
+  { Id: '06', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' },
+  { Id: '07', Title: 'book 2', Description: 'alpha', ISDN: '001', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '1' },
+  { Id: '08', Title: 'book 3', Description: 'beta', ISDN: '002', Published: new Date('2020-01-02'), Copies: 2345678, FirstEdition: true, LibraryId: '2' },
+  { Id: '09', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' },
+  { Id: '10', Title: 'book 2', Description: 'alpha', ISDN: '001', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '1' },
+  { Id: '11', Title: 'book 3', Description: 'beta', ISDN: '002', Published: new Date('2020-01-02'), Copies: 2345678, FirstEdition: true, LibraryId: '2' },
+  { Id: '12', Title: 'book 1', Description: 'gamma', ISDN: '003', Published: new Date('2020-01-01'), Copies: 1234567, FirstEdition: true, LibraryId: '2' }
 ];
 
 

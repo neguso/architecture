@@ -195,7 +195,7 @@ export class ArrayStore<T extends IBaseObject> extends DataStore<T>
     if(fields.length === 0)
       return array;
 
-    return array.sort((a, b) => {
+    return array.slice().sort((a, b) => {
       for(const field of fields)
       {
         if(a[field.Field] < b[field.Field])
@@ -321,19 +321,19 @@ export abstract class DataService
 
   public RegisterStore(type: Type<IBaseObject>, store: DataStore<IBaseObject>): void
   {
-    this.Stores[type.constructor.name] = store;
+    this.Stores[type.name] = store;
   }
 
   public UnregisterStore(type: Type<IBaseObject>): void
   {
-    if(this.Stores.hasOwnProperty(type.constructor.name))
-      delete this.Stores[type.constructor.name];
+    if(this.Stores.hasOwnProperty(type.name))
+      delete this.Stores[type.name];
   }
 
   public GetStore<T extends IBaseObject>(type: Type<IBaseObject>): DataStore<T> | null
   {
-    if(this.Stores.hasOwnProperty(type.constructor.name))
-      return this.Stores[type.constructor.name] as DataStore<T>;
+    if(this.Stores.hasOwnProperty(type.name))
+      return this.Stores[type.name] as DataStore<T>;
     return null;
   }
 }
@@ -362,8 +362,8 @@ export class DataSource<T extends IBaseObject>
 
   public readonly Items: Array<T> = [];
   public Filter: LogicalExpression = [];
-  public Skip: number = 0;
-  public Take: number = 10;
+  public Page: number = 0;
+  public PageSize: number = 20;
   public Sort: Array<ISortExpression> = [];
   public TotalCount: number = 0;
   public RequireTotalCount: boolean = true;
@@ -385,10 +385,10 @@ export class DataSource<T extends IBaseObject>
     {
       this.Loading.Trigger(EventArgs.Empty);
 
-      const items = await this.DataStore.Load({ Filter: this.Filter, Skip: this.Skip, Take: this.Take });
+      const items = await this.DataStore.Load({ Filter: this.Filter, Sort: this.Sort, Skip: this.Page * this.PageSize, Take: this.PageSize });
       this.Items.splice(0, this.Items.length, ...items);
       if(this.RequireTotalCount)
-        this.TotalCount = await this.DataStore.Count({ Filter: [] });
+        this.TotalCount = await this.DataStore.Count();
 
       this.Loaded.Trigger(EventArgs.Empty);
     }
@@ -397,5 +397,4 @@ export class DataSource<T extends IBaseObject>
       this.LoadingError.Trigger(new DataSourceLoadingErrorArgs(error));
     }
   }
-
 }
