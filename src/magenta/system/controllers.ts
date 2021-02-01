@@ -238,7 +238,7 @@ export class ListViewController extends ViewController
 
   public async Paginate(index: number, size: number): Promise<void>
   {
-    console.log(`Paginate to ${index} size ${size}`);
+    console.log(`Paginate to page ${index} of size ${size}`);
 
     const view = this.View as ListView;
     if(view.DataSource !== null)

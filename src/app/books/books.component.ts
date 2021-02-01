@@ -23,6 +23,7 @@ export class BooksComponent extends ComponentBase
     super(route);
 
     (this.View as ListView).DataSource?.Loaded.Subscribe(() => {
+      // required by table when datasource array changes
       this.Table.renderRows();
     });
   }
