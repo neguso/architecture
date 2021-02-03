@@ -109,6 +109,8 @@ export class MyAppModule
     model.RegisterStaticTextColumn(books, 'Copies', { Index: 3 });
     model.RegisterStaticTextColumn(books, 'First Edition', { Index: 4 });
 
+    model.RegisterAction('google', { Caption: 'Google', Container: 'listview-actions' });
+
     const libraries = 'Libraries_ListView';
     model.RegisterListView(libraries, Library);
     //...

@@ -921,7 +921,7 @@ export abstract class ActionBase
     this.shortCaption = value;
   }
 
-  public toolTip: string | null = null;
+  private toolTip: string | null = null;
   public get ToolTip(): string
   {
     return this.toolTip ?? this.Model?.ToolTip ?? '';
@@ -931,7 +931,7 @@ export abstract class ActionBase
     this.toolTip = value;
   }
 
-  public image: string | null = null;
+  private image: string | null = null;
   public get Image(): string
   {
     return this.image ?? this.Model?.Image ?? '';
@@ -970,9 +970,9 @@ export class SimpleAction extends ActionBase
 }
 
 
-export class TreeNodeAction extends ActionBase
+export class UrlAction extends ActionBase
 {
-  public readonly Items: Array<TreeNodeAction> = [];
+  public Url: string = '';
 
 
   constructor(id: string, controller: IController)
@@ -984,7 +984,7 @@ export class TreeNodeAction extends ActionBase
 
 export class ParametrizedAction extends ActionBase
 {
-  public readonly ValueType: Type<any>;
+  public readonly ValueType: Type<string> | Type<number> | Type<Date>;
   public NullValuePrompt: string = '';
 
 
@@ -993,6 +993,17 @@ export class ParametrizedAction extends ActionBase
     super(id, controller);
 
     this.ValueType = valueType;
+  }
+}
+
+export class TreeNodeAction extends ActionBase
+{
+  public readonly Items: Array<TreeNodeAction> = [];
+
+
+  constructor(id: string, controller: IController)
+  {
+    super(id, controller);
   }
 }
 
@@ -1190,8 +1201,8 @@ export class ViewController extends ComponentController
   public View: View | null = null;
 
   public readonly TargetViews: Array<string> = [];
-  public TargetViewType: any = null;
-  public TargetObjectType: any = null;
+  public TargetViewType: Type<View> | null = null;
+  public TargetObjectType: Type<IBaseObject> | null = null;
 
 
   constructor(component: IComponent, model: ModelApplication)

@@ -1,7 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Type } from '@angular/core';
 
 import { ActionBase, ActionsContainerViewItem, StaticImageViewItem, StaticTextViewItem, TreeNodeAction, ViewItem, ColumnViewItem,
-  DataSource, IBaseObject } from '../core';
+  DataSource, IBaseObject, Utils, SimpleAction, UrlAction, ParametrizedAction } from '../core';
 
 
 
@@ -39,7 +39,22 @@ export class StaticImageViewItemComponent
 
 @Component({
   selector: 'actions-container',
-  template: '<div><button *ngFor="let action of Actions" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button></div>'
+  template: `
+    <div>
+      <ng-template ngFor let-action [ngForOf]="Actions">
+
+        <!-- SimpleButton -->
+        <button *ngIf="IsSimpleAction(action)" (click)="action.DoExecute()" mat-raised-button>{{action.Caption}}</button>
+
+        <!-- UrlAction -->
+        <a *ngIf="IsUrlAction(action)" href="{{$any(action).Url}}" mat-button>{{action.Caption}}</a>
+
+        <!-- ParametrizedAction -->
+        <input *ngIf="IsParametrizedAction(action)" matInput placeholder="{{$any(action).NullValuePrompt}}" value="">
+
+      </ng-template>
+    </div>
+  `
 })
 export class ActionsContainerViewItemComponent
 {
@@ -57,6 +72,10 @@ export class ActionsContainerViewItemComponent
   {
     return this.ActionContainerItem?.Actions.filter(e => e.Container === this.ActionContainerItem?.Container) ?? this.ActionsList?.filter(e => e.Container === this.Container) ?? [];
   }
+
+  public IsSimpleAction(action: ActionBase): boolean { return Utils.Extends(SimpleAction, action.constructor as Type<any>); }
+  public IsUrlAction(action: ActionBase): boolean { return Utils.Extends(UrlAction, action.constructor as Type<any>); }
+  public IsParametrizedAction(action: ActionBase): boolean { return Utils.Extends(ParametrizedAction, action.constructor as Type<any>); }
 }
 
 

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { AboutComponent } from 'src/app/about/about.component';
-import { ComponentBase, ComponentController, ComponentLifecycleController, Controller, ControllerManager, IComponent, ModelApplication, SimpleAction, ViewController } from 'src/magenta/core';
+import { UrlAction, ComponentBase, ComponentController, ComponentLifecycleController, Controller, ControllerManager, IComponent, ListView, ModelApplication, SimpleAction, ViewController } from 'src/magenta/core';
 
 
 @Injectable()
@@ -23,6 +23,33 @@ export class TestController extends ComponentController
     lifecycleController.Init.Subscribe(() => { console.log(`${this.Component.constructor.name} initialized`); });
     lifecycleController.Destroy.Subscribe(() => { console.log(`${this.Component.constructor.name} destroyed`); });
   }
+}
+
+
+@Injectable()
+@Controller(ComponentBase)
+export class TestListViewController extends ViewController
+{
+  constructor(@Inject('IComponent') component: IComponent, model: ModelApplication)
+  {
+    super(component, model);
+
+    this.TargetViewType = ListView;
+
+    this.Created.Subscribe(() => this.OnCreated());
+    //this.Activated.Subscribe(() => this.OnActivated());
+  }
+
+
+  public OnCreated(): void
+  {
+    const testLinkAction = new UrlAction('google', this);
+    testLinkAction.Url = 'https://www.google.com';
+
+    this.Actions.Add(testLinkAction);
+  }
+
+
 }
 
 
