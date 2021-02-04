@@ -50,7 +50,7 @@ export class StaticImageViewItemComponent
         <a *ngIf="IsUrlAction(action)" href="{{$any(action).Url}}" mat-button>{{action.Caption}}</a>
 
         <!-- ParametrizedAction -->
-        <input *ngIf="IsParametrizedAction(action)" matInput placeholder="{{$any(action).NullValuePrompt}}" value="">
+        <input *ngIf="IsParametrizedAction(action)" matInput placeholder="{{$any(action).NullValuePrompt}}">
 
       </ng-template>
     </div>

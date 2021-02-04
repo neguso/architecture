@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { AboutComponent } from 'src/app/about/about.component';
-import { UrlAction, ComponentBase, ComponentController, ComponentLifecycleController, Controller, ControllerManager, IComponent, ListView, ModelApplication, SimpleAction, ViewController, ParametrizedAction } from 'src/magenta/core';
+import { UrlAction, ComponentBase, ComponentController, ComponentLifecycleController, Controller, ControllerManager, IComponent, ListView,
+  ModelApplication, SimpleAction, ViewController, ParametrizedAction } from 'src/magenta/core';
 
 
 @Injectable()
@@ -43,15 +44,13 @@ export class TestListViewController extends ViewController
 
   public OnCreated(): void
   {
-    const testLinkAction = new UrlAction('google', this);
-    testLinkAction.Url = 'https://www.google.com';
-
+    const testLinkAction = new UrlAction('google', this, 'https://www.google.com');
     this.Actions.Add(testLinkAction);
 
-    const testParamAction = new ParametrizedAction('search', this, string);
+    const testParamAction = new ParametrizedAction('search', this, String);
+    testParamAction.NullValuePrompt = 'Search';
+    this.Actions.Add(testParamAction);
   }
-
-
 }
 
 

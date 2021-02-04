@@ -986,11 +986,11 @@ export class UrlAction extends ActionBase
 
 export class ParametrizedAction extends ActionBase
 {
-  public readonly ValueType: Type<string> | Type<number> | Type<Date>;
+  public readonly ValueType: Type<any>;
   public NullValuePrompt: string = '';
 
 
-  constructor(id: string, controller: IController, valueType: Type<string> | Type<number> | Type<Date>)
+  constructor(id: string, controller: IController, valueType: Type<any>)
   {
     super(id, controller);
 
