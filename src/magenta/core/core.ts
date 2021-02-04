@@ -972,12 +972,14 @@ export class SimpleAction extends ActionBase
 
 export class UrlAction extends ActionBase
 {
-  public Url: string = '';
+  public Url: string;
 
 
-  constructor(id: string, controller: IController)
+  constructor(id: string, controller: IController, url: string = '')
   {
     super(id, controller);
+
+    this.Url = url;
   }
 }
 
@@ -988,7 +990,7 @@ export class ParametrizedAction extends ActionBase
   public NullValuePrompt: string = '';
 
 
-  constructor(id: string, controller: IController, valueType: Type<any>)
+  constructor(id: string, controller: IController, valueType: Type<string> | Type<number> | Type<Date>)
   {
     super(id, controller);
 
