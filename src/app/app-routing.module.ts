@@ -9,9 +9,7 @@ import { LibrariesComponent } from './libraries/libraries.component';
 import { MainComponent } from './main/main.component';
 
 
-
 const routes: Routes = [
-  //{ path: '', component: MainTemplateComponent, data: { view: 'About_DetailView' } },
   {
     path: '',
     component: MainComponent,
@@ -24,11 +22,7 @@ const routes: Routes = [
       { path: 'libraries/:id', component: LibraryComponent, data: { view: 'Library_DetailView' } }
     ]
   },
-  {
-    path: 'about',
-    component: AboutComponent,
-    data: { view: 'About_DetailView', key: '0' }
-  }
+  { path: 'about', component: AboutComponent, data: { view: 'About_DetailView', key: '0' } }
 ];
 
 @NgModule({
